@@ -1,0 +1,201 @@
+---
+import { site, type Locale } from '../data/site';
+import { localePath, useTranslations } from '../i18n/utils';
+import Logo from './Logo.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+
+const explore = [
+  { key: 'nav.hikes', path: 'hikes' },
+  { key: 'nav.private', path: 'private-hikes' },
+  { key: 'nav.custom', path: 'custom-hikes' },
+  { key: 'nav.guide', path: 'guide' },
+] as const;
+
+const company = [
+  { key: 'nav.about', path: 'about' },
+  { key: 'nav.blog', path: 'blog' },
+  { key: 'nav.contact', path: 'contact' },
+] as const;
+
+const whatsappUrl = `https://wa.me/${site.contact.whatsapp}`;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap wrap--wide">
+    <div class="site-footer__grid">
+      <div class="site-footer__brand">
+        <a href={localePath(locale)} aria-label={site.name}>
+          <Logo tone="light" />
+        </a>
+        <p class="site-footer__tagline">{t('footer.tagline')}</p>
+
+        <ul class="site-footer__social">
+          <li>
+            <a href={site.social.instagram} rel="me noopener" target="_blank">Instagram</a>
+          </li>
+          <li>
+            <a href={site.social.tripadvisor} rel="noopener" target="_blank">Tripadvisor</a>
+          </li>
+        </ul>
+      </div>
+
+      <nav class="site-footer__col" aria-label={t('footer.explore')}>
+        <h2 class="site-footer__heading">{t('footer.explore')}</h2>
+        <ul>
+          {
+            explore.map((link) => (
+              <li>
+                <a href={localePath(locale, link.path)}>{t(link.key)}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <nav class="site-footer__col" aria-label={t('footer.company')}>
+        <h2 class="site-footer__heading">{t('footer.company')}</h2>
+        <ul>
+          {
+            company.map((link) => (
+              <li>
+                <a href={localePath(locale, link.path)}>{t(link.key)}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      {/*
+        Name, address and phone stated in plain readable text. This is the
+        version a crawler cross-checks against Tripadvisor and Google, so it
+        must match those listings character for character.
+      */}
+      <div class="site-footer__col">
+        <h2 class="site-footer__heading">{t('footer.contactUs')}</h2>
+        <address class="site-footer__address">
+          <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+          <a href={`tel:${site.contact.phone}`}>{site.contact.phoneDisplay}</a>
+          <a href={whatsappUrl} rel="noopener" target="_blank">WhatsApp</a>
+          <span class="site-footer__place">
+            {site.address.locality}, {site.address.region}, {site.address.countryName}
+          </span>
+        </address>
+      </div>
+    </div>
+
+    <div class="site-footer__bottom">
+      <p>&copy; {year} {site.name}. {t('footer.rights')}</p>
+      <a href={localePath(locale, 'legal')}>{t('footer.legal')}</a>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--surface-inverse);
+    color: var(--text-inverse-muted);
+    padding-block: var(--space-2xl) var(--space-l);
+    font-size: var(--step--1);
+  }
+
+  .site-footer__grid {
+    display: grid;
+    gap: var(--space-xl) var(--space-l);
+    grid-template-columns: 1fr;
+  }
+
+  .site-footer__tagline {
+    margin-top: var(--space-s);
+    max-width: 30ch;
+    color: var(--text-inverse-muted);
+    line-height: var(--leading-normal);
+  }
+
+  .site-footer__heading {
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--stone-400);
+    margin-bottom: var(--space-xs);
+  }
+
+  .site-footer ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+
+  .site-footer__social {
+    flex-direction: row !important;
+    gap: var(--space-s) !important;
+    margin-top: var(--space-m) !important;
+  }
+
+  .site-footer a {
+    color: var(--sand-200);
+    text-decoration: none;
+  }
+
+  .site-footer a:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .site-footer__address {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    font-style: normal;
+    align-items: flex-start;
+  }
+
+  .site-footer__place {
+    color: var(--text-inverse-muted);
+    line-height: var(--leading-snug);
+  }
+
+  .site-footer__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: var(--space-2xs) var(--space-m);
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-m);
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+    color: var(--stone-500);
+  }
+
+  @media (min-width: 40rem) {
+    .site-footer__grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .site-footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .site-footer__grid {
+      /* Brand block gets the extra room; the three link columns stay even. */
+      grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
+    }
+
+    .site-footer__brand {
+      grid-column: auto;
+    }
+  }
+</style>

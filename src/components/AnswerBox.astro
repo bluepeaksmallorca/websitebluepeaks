@@ -1,0 +1,75 @@
+---
+/**
+ * The direct answer to the page's implied question, placed immediately after
+ * the H1 and before anything else.
+ *
+ * This exists because of how answer engines read a page. They rarely quote a
+ * paragraph buried under three sections of scene-setting; they lift the first
+ * self-contained, factual statement they find. Writing that statement on
+ * purpose — one that makes sense with zero surrounding context, names the
+ * place, and carries the numbers — is the single highest-leverage thing on
+ * these pages.
+ *
+ * Keep it to 2–3 sentences. Never write "we" without naming Blue Peaks first.
+ */
+interface Props {
+  /** Optional label, e.g. "In short". Omit for a cleaner look on short pages. */
+  label?: string;
+}
+const { label } = Astro.props;
+---
+
+<div class="answer">
+  {label && <p class="answer__label">{label}</p>}
+  <div class="answer__body">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .answer {
+    position: relative;
+    padding: var(--space-m);
+    padding-left: calc(var(--space-m) + 3px);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    overflow: hidden;
+  }
+
+  .answer::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 3px;
+    background: var(--primary);
+  }
+
+  .answer__label {
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .answer__body {
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--ink-700);
+    text-wrap: pretty;
+  }
+
+  .answer__body :global(p + p) {
+    margin-top: var(--space-2xs);
+  }
+
+  @media (min-width: 48rem) {
+    .answer {
+      padding: var(--space-l);
+      padding-left: calc(var(--space-l) + 3px);
+    }
+  }
+</style>

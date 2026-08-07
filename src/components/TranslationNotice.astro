@@ -1,0 +1,44 @@
+---
+import type { Locale } from '../data/site';
+import { useTranslations } from '../i18n/utils';
+
+/**
+ * Shown when a page has no translation yet and the English text is being
+ * served instead.
+ *
+ * Saying so is better than silently showing English under a /de/ URL. It also
+ * pairs with the hreflang logic in src/lib/content.ts, which omits the locale
+ * from the alternates list until a real translation exists.
+ */
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<p class="notice" lang={locale}>
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+    <circle cx="12" cy="12" r="9"></circle>
+    <path d="M12 8h.01M11 12h1v4h1"></path>
+  </svg>
+  {t('label.translationNotice')}
+</p>
+
+<style>
+  .notice {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2xs);
+    padding: var(--space-2xs) var(--space-xs);
+    background: var(--bg-sunken);
+    border-radius: var(--radius-s);
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  .notice svg {
+    flex-shrink: 0;
+    margin-top: 0.15em;
+  }
+</style>

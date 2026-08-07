@@ -1,0 +1,163 @@
+---
+import { Image } from 'astro:assets';
+import Placeholder from './Placeholder.astro';
+
+/**
+ * Full-bleed page hero. Sits behind the transparent sticky header, so the
+ * layout must reserve `--header-h` of top padding for the content.
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  /** Rendered under the title, above the actions. */
+  lede?: string;
+  image?: ImageMetadata;
+  imageAlt?: string;
+  /** Seed for the generated ridgeline when no photograph is supplied. */
+  seed?: string;
+  /** Shorter hero for interior pages. */
+  size?: 'full' | 'compact';
+}
+
+const {
+  eyebrow,
+  title,
+  lede,
+  image,
+  imageAlt = '',
+  seed = 'blue-peaks',
+  size = 'full',
+} = Astro.props;
+---
+
+<section class:list={['hero', `hero--${size}`]}>
+  <div class="hero__media">
+    {
+      image ? (
+        <Image
+          src={image}
+          alt={imageAlt}
+          widths={[640, 960, 1280, 1920]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+          decoding="async"
+        />
+      ) : (
+        <Placeholder seed={seed} variant="wide" />
+      )
+    }
+  </div>
+
+  <div class="wrap hero__content">
+    {eyebrow && <p class="hero__eyebrow">{eyebrow}</p>}
+    <h1 class="hero__title">{title}</h1>
+    {lede && <p class="hero__lede">{lede}</p>}
+    <div class="hero__actions">
+      <slot />
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    /* svh, not vh: iOS Safari's collapsing toolbar otherwise crops the hero. */
+    min-height: 32rem;
+    padding-top: calc(var(--header-h) + var(--space-l));
+    padding-bottom: var(--space-2xl);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--ink-900);
+  }
+
+  .hero--full {
+    min-height: min(88svh, 46rem);
+  }
+
+  .hero--compact {
+    min-height: min(52svh, 28rem);
+    padding-bottom: var(--space-xl);
+  }
+
+  .hero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  .hero__media :global(img),
+  .hero__media :global(svg) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /*
+    Two overlays rather than one: a vertical scrim that anchors the text, and a
+    slight overall darkening so white type clears AA on any photograph.
+  */
+  .hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(
+        to top,
+        rgb(9 15 20 / 0.86) 0%,
+        rgb(9 15 20 / 0.55) 38%,
+        rgb(9 15 20 / 0.18) 70%,
+        rgb(9 15 20 / 0.32) 100%
+      );
+  }
+
+  .hero__content {
+    position: relative;
+    color: #fff;
+  }
+
+  .hero__eyebrow {
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.75);
+    margin-bottom: var(--space-xs);
+  }
+
+  .hero__title {
+    font-size: var(--step-6);
+    color: #fff;
+    max-width: 16ch;
+    text-shadow: 0 1px 24px rgb(0 0 0 / 0.25);
+  }
+
+  .hero--compact .hero__title {
+    font-size: var(--step-5);
+    max-width: 20ch;
+  }
+
+  .hero__lede {
+    margin-top: var(--space-s);
+    max-width: 44ch;
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: rgb(255 255 255 / 0.88);
+  }
+
+  .hero__actions:not(:empty) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-xs);
+    margin-top: var(--space-l);
+  }
+
+  @media (max-width: 24rem) {
+    .hero__actions :global(.btn) {
+      width: 100%;
+    }
+  }
+</style>

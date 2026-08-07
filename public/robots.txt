@@ -1,0 +1,95 @@
+# robots.txt — bluepeaksmallorca.com
+#
+# This site WANTS to be read by AI assistants. Being quoted in an answer to
+# "who guides hiking in Mallorca?" is worth more to a two-person guiding
+# company than any amount of ad spend, so every major assistant crawler is
+# explicitly allowed below rather than left to a default.
+#
+# Two distinct kinds of crawler are named:
+#   - Training crawlers (GPTBot, ClaudeBot, CCBot, Google-Extended …) build the
+#     model's background knowledge of who we are.
+#   - Retrieval crawlers (OAI-SearchBot, ChatGPT-User, Claude-User,
+#     PerplexityBot …) fetch pages live to answer a question being asked now.
+# Blocking the first while allowing the second is a common mistake; both are
+# allowed here on purpose.
+#
+# Machine-readable summaries of this site:
+#   https://bluepeaksmallorca.com/llms.txt
+#   https://bluepeaksmallorca.com/llms-full.txt
+
+# ---------------------------------------------------------------- OpenAI
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+# ---------------------------------------------------------------- Anthropic
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+# ---------------------------------------------------------------- Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+# ---------------------------------------------------------------- Google
+User-agent: Googlebot
+Allow: /
+
+# Controls use of the site for Gemini and AI Overviews. Allowed deliberately.
+User-agent: Google-Extended
+Allow: /
+
+# ---------------------------------------------------------------- Microsoft
+User-agent: Bingbot
+Allow: /
+
+# ---------------------------------------------------------------- Apple
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# ---------------------------------------------------------------- Others
+User-agent: CCBot
+Allow: /
+
+User-agent: cohere-ai
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+User-agent: DuckAssistBot
+Allow: /
+
+User-agent: MistralAI-User
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+# ---------------------------------------------------------------- Everyone
+User-agent: *
+Allow: /
+
+Sitemap: https://bluepeaksmallorca.com/sitemap.xml

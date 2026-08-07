@@ -1,0 +1,373 @@
+---
+import type { Locale } from '../data/site';
+import { localePath, useTranslations } from '../i18n/utils';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+import Logo from './Logo.astro';
+
+interface Props {
+  locale: Locale;
+  routeKey: string;
+}
+
+const { locale, routeKey } = Astro.props;
+const t = useTranslations(locale);
+
+const links = [
+  { key: 'nav.hikes', path: 'hikes' },
+  { key: 'nav.private', path: 'private-hikes' },
+  { key: 'nav.custom', path: 'custom-hikes' },
+  { key: 'nav.guide', path: 'guide' },
+  { key: 'nav.blog', path: 'blog' },
+  { key: 'nav.about', path: 'about' },
+] as const;
+
+const isCurrent = (path: string) =>
+  routeKey === path || routeKey.startsWith(`${path}/`);
+---
+
+<a class="skip-link" href="#main">{t('nav.skip')}</a>
+
+<header class="site-header" data-header>
+  <div class="wrap wrap--wide site-header__inner">
+    <a href={localePath(locale)} class="site-header__brand" aria-label="Blue Peaks Mallorca">
+      <Logo />
+    </a>
+
+    <nav class="site-nav" aria-label="Main">
+      <ul class="site-nav__list">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={localePath(locale, link.path)}
+                class:list={['site-nav__link', { 'is-current': isCurrent(link.path) }]}
+                aria-current={isCurrent(link.path) ? 'page' : undefined}
+              >
+                {t(link.key)}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="site-header__actions">
+      <LanguageSwitcher locale={locale} routeKey={routeKey} id="lang-desktop" />
+      <a href={localePath(locale, 'contact')} class="btn btn--primary site-header__cta">
+        {t('cta.enquire')}
+      </a>
+
+      <button
+        type="button"
+        class="nav-toggle"
+        data-nav-toggle
+        aria-expanded="false"
+        aria-controls="nav-panel"
+      >
+        <span class="visually-hidden">{t('nav.menu')}</span>
+        <span class="nav-toggle__bars" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </span>
+      </button>
+    </div>
+  </div>
+
+  <div class="nav-panel" id="nav-panel" data-nav-panel hidden>
+    <nav class="wrap" aria-label="Mobile">
+      <ul class="nav-panel__list">
+        {
+          links.map((link) => (
+            <li>
+              <a
+                href={localePath(locale, link.path)}
+                class:list={['nav-panel__link', { 'is-current': isCurrent(link.path) }]}
+                aria-current={isCurrent(link.path) ? 'page' : undefined}
+              >
+                {t(link.key)}
+              </a>
+            </li>
+          ))
+        }
+        <li>
+          <a href={localePath(locale, 'contact')} class="nav-panel__link">{t('nav.contact')}</a>
+        </li>
+      </ul>
+
+      <div class="nav-panel__footer">
+        <LanguageSwitcher locale={locale} routeKey={routeKey} id="lang-mobile" />
+        <a href={localePath(locale, 'contact')} class="btn btn--primary btn--block">
+          {t('cta.enquire')}
+        </a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter: blur(12px) saturate(1.4);
+    border-bottom: 1px solid transparent;
+    transition: border-color var(--duration) var(--ease-out);
+  }
+
+  /* The border only appears once the page has scrolled, so the hero sits flush. */
+  .site-header[data-scrolled] {
+    border-bottom-color: var(--border);
+  }
+
+  .site-header__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-s);
+    min-height: var(--header-h);
+  }
+
+  .site-header__brand {
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    color: var(--ink-900);
+    text-decoration: none;
+  }
+
+  .site-header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3xs);
+  }
+
+  /* ---- Desktop nav ---- */
+
+  .site-nav {
+    display: none;
+  }
+
+  .site-nav__list {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.5rem, 0.1rem + 0.9vw, 1.4rem);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-nav__link {
+    position: relative;
+    display: block;
+    padding: 0.5rem 0;
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--text-muted);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .site-nav__link::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0.1rem;
+    height: 2px;
+    background: var(--primary);
+    border-radius: 2px;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--duration) var(--ease-out);
+  }
+
+  .site-nav__link:hover {
+    color: var(--text);
+  }
+
+  .site-nav__link:hover::after,
+  .site-nav__link.is-current::after {
+    transform: scaleX(1);
+  }
+
+  .site-nav__link.is-current {
+    color: var(--primary);
+  }
+
+  .site-header__cta {
+    display: none;
+  }
+
+  /* ---- Mobile toggle ---- */
+
+  .nav-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    border-radius: var(--radius-s);
+    color: var(--ink-900);
+  }
+
+  .nav-toggle:hover {
+    background: var(--bg-sunken);
+  }
+
+  .nav-toggle__bars {
+    display: block;
+    width: 20px;
+    height: 14px;
+    position: relative;
+  }
+
+  .nav-toggle__bars span {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition:
+      transform var(--duration) var(--ease-out),
+      opacity var(--duration) var(--ease-out);
+  }
+
+  .nav-toggle__bars span:nth-child(1) {
+    top: 0;
+  }
+  .nav-toggle__bars span:nth-child(2) {
+    top: 6px;
+  }
+  .nav-toggle__bars span:nth-child(3) {
+    top: 12px;
+  }
+
+  .nav-toggle[aria-expanded='true'] .nav-toggle__bars span:nth-child(1) {
+    transform: translateY(6px) rotate(45deg);
+  }
+  .nav-toggle[aria-expanded='true'] .nav-toggle__bars span:nth-child(2) {
+    opacity: 0;
+  }
+  .nav-toggle[aria-expanded='true'] .nav-toggle__bars span:nth-child(3) {
+    transform: translateY(-6px) rotate(-45deg);
+  }
+
+  /* ---- Mobile panel ---- */
+
+  .nav-panel {
+    border-top: 1px solid var(--border);
+    background: var(--bg);
+    max-height: calc(100svh - var(--header-h));
+    overflow-y: auto;
+    padding-block: var(--space-s) var(--space-m);
+  }
+
+  .nav-panel[hidden] {
+    display: none;
+  }
+
+  .nav-panel__list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav-panel__link {
+    display: block;
+    padding: 0.85rem 0;
+    font-family: var(--font-display);
+    font-size: var(--step-2);
+    color: var(--ink-800);
+    text-decoration: none;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .nav-panel__link.is-current {
+    color: var(--primary);
+  }
+
+  .nav-panel__footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xs);
+    margin-top: var(--space-m);
+  }
+
+  /* Hide the desktop language switcher until there is room for it. */
+  .site-header__actions :global(#lang-desktop) {
+    display: none;
+  }
+
+  @media (min-width: 64rem) {
+    .site-nav {
+      display: block;
+    }
+
+    .nav-toggle {
+      display: none;
+    }
+
+    .nav-panel {
+      display: none !important;
+    }
+
+    .site-header__cta {
+      display: inline-flex;
+      min-height: 2.6rem;
+      padding: 0.5rem 1.15rem;
+      font-size: var(--step--1);
+    }
+
+    .site-header__actions :global(#lang-desktop) {
+      display: block;
+    }
+
+    .site-header__actions {
+      gap: var(--space-2xs);
+    }
+  }
+</style>
+
+<script>
+  // Progressive enhancement: without JS the panel stays hidden and the desktop
+  // nav (or the footer sitemap) still gives access to every page.
+  const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
+  const panel = document.querySelector<HTMLElement>('[data-nav-panel]');
+  const header = document.querySelector<HTMLElement>('[data-header]');
+
+  if (toggle && panel) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      // Stop the page behind the menu from scrolling on iOS.
+      document.documentElement.style.overflow = open ? 'hidden' : '';
+    };
+
+    toggle.addEventListener('click', () => {
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+
+    // Reset when the viewport grows past the breakpoint, so the desktop nav is
+    // never left with a stale open panel and a locked <html>.
+    const wide = window.matchMedia('(min-width: 64rem)');
+    wide.addEventListener('change', (event) => {
+      if (event.matches) setOpen(false);
+    });
+  }
+
+  if (header) {
+    const onScroll = () => {
+      header.toggleAttribute('data-scrolled', window.scrollY > 8);
+    };
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+  }
+</script>

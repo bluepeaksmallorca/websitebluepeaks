@@ -1,0 +1,302 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import Base from '../../layouts/Base.astro';
+import Hero from '../../components/Hero.astro';
+import AnswerBox from '../../components/AnswerBox.astro';
+import HikeCard from '../../components/HikeCard.astro';
+import Faq from '../../components/Faq.astro';
+import ContactCta from '../../components/ContactCta.astro';
+
+import { site, guides, type Locale } from '../../data/site';
+import { home } from '../../data/pages/home';
+import { localeStaticPaths } from '../../lib/paths';
+import { getLocalisedEntries, parseId, byOrder } from '../../lib/content';
+import { localePath, useTranslations, absoluteUrl } from '../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, faqNode, trail } from '../../lib/schema';
+
+export const getStaticPaths = (() => localeStaticPaths()) satisfies GetStaticPaths;
+
+const { locale } = Astro.props as { locale: Locale };
+const t = useTranslations(locale);
+const copy = home[locale];
+
+const allHikes = (await getLocalisedEntries('hikes', locale)).sort(byOrder);
+const featured = allHikes.filter((h) => h.data.featured).slice(0, 3);
+const hikesToShow = featured.length ? featured : allHikes.slice(0, 3);
+
+const guidePages = (await getLocalisedEntries('guide', locale)).sort(byOrder).slice(0, 3);
+
+const url = absoluteUrl(localePath(locale));
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
+    locale,
+    updated: new Date(),
+  }),
+  breadcrumbNode(url, trail(locale, [])),
+  faqNode(url, copy.faqs),
+]);
+---
+
+<Base
+  title={copy.metaTitle}
+  description={copy.metaDescription}
+  locale={locale}
+  routeKey=""
+  jsonLd={jsonLd}
+  flushHero
+>
+  <Hero
+    eyebrow={copy.heroEyebrow}
+    title={copy.heroTitle}
+    lede={copy.heroLede}
+    seed="tramuntana-home"
+  >
+    <a class="btn btn--primary" href={localePath(locale, 'hikes')}>{t('cta.allHikes')}</a>
+    <a class="btn btn--on-ink" href={localePath(locale, 'contact')}>{t('cta.enquire')}</a>
+  </Hero>
+
+  {/*
+    The definition of the business, immediately after the hero and before any
+    sales copy. Self-contained on purpose: who we are, where, what it costs.
+  */}
+  <section class="section section--tight">
+    <div class="wrap wrap--prose">
+      <AnswerBox label={copy.introLabel}>
+        <p>{copy.intro}</p>
+        <p>{copy.intro2}</p>
+      </AnswerBox>
+    </div>
+  </section>
+
+  <section class="section section--sunken" aria-labelledby="ways-heading">
+    <div class="wrap">
+      <div class="section-head">
+        <p class="eyebrow">{site.shortName}</p>
+        <h2 id="ways-heading">{copy.waysHeading}</h2>
+        <p class="lede">{copy.waysLede}</p>
+      </div>
+
+      <div class="grid" style="--min: 17rem">
+        {
+          copy.ways.map((way) => (
+            <article class="card way">
+              <div class="card__body">
+                <h3 class="card__title">
+                  <a href={localePath(locale, way.path)}>{way.title}</a>
+                </h3>
+                <p class="way__body">{way.body}</p>
+                <p class="way__cta" aria-hidden="true">
+                  {way.cta} →
+                </p>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  {
+    hikesToShow.length > 0 && (
+      <section class="section" aria-labelledby="hikes-heading">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="hikes-heading">{copy.hikesHeading}</h2>
+            <p class="lede">{copy.hikesLede}</p>
+          </div>
+
+          <div class="grid" style="--min: 18rem">
+            {hikesToShow.map((hike, index) => (
+              <HikeCard
+                locale={locale}
+                slug={parseId(hike.id).slug}
+                title={hike.data.title}
+                summary={hike.data.summary}
+                image={hike.data.heroImage}
+                imageAlt={hike.data.heroAlt}
+                facts={hike.data.facts}
+                index={index}
+              />
+            ))}
+          </div>
+
+          <p class="section-more">
+            <a class="btn btn--ghost" href={localePath(locale, 'hikes')}>
+              {t('cta.allHikes')}
+            </a>
+          </p>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--sunken" aria-labelledby="guides-heading">
+    <div class="wrap">
+      <div class="guides">
+        <div class="guides__text">
+          <p class="eyebrow">{guides.map((g) => g.name).join(' & ')}</p>
+          <h2 id="guides-heading">{copy.guidesHeading}</h2>
+          <p>{copy.guidesBody}</p>
+          <p>{copy.guidesBody2}</p>
+          <p>
+            <a class="btn btn--ghost" href={localePath(locale, 'about')}>{copy.guidesCta}</a>
+          </p>
+        </div>
+
+        <dl class="guides__facts">
+          <div>
+            <dt>{t('label.languages')}</dt>
+            <dd>{site.languagesSpoken.join(', ')}</dd>
+          </div>
+          <div>
+            <dt>{t('facts.group')}</dt>
+            <dd>Max. {site.pricing.privateMaxGroup}</dd>
+          </div>
+          <div>
+            <dt>{t('facts.price')}</dt>
+            <dd>€{site.pricing.privateDayRate} {t('label.perDay')}</dd>
+          </div>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  {
+    guidePages.length > 0 && (
+      <section class="section" aria-labelledby="practical-heading">
+        <div class="wrap">
+          <div class="section-head">
+            <h2 id="practical-heading">{copy.practicalHeading}</h2>
+            <p class="lede">{copy.practicalLede}</p>
+          </div>
+
+          <ul class="guide-list">
+            {guidePages.map((page) => (
+              <li>
+                <a href={localePath(locale, `guide/${parseId(page.id).slug}`)}>
+                  <h3>{page.data.title}</h3>
+                  <p>{page.data.summary}</p>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <Faq locale={locale} faqs={copy.faqs} level={3} />
+    </div>
+  </section>
+
+  <ContactCta locale={locale} />
+</Base>
+
+<style>
+  .way__body {
+    color: var(--text-muted);
+    line-height: var(--leading-relaxed);
+  }
+
+  .way__cta {
+    margin-top: auto;
+    padding-top: var(--space-s);
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--link);
+  }
+
+  .section-more {
+    margin-top: var(--space-l);
+  }
+
+  .guides {
+    display: grid;
+    gap: var(--space-l);
+  }
+
+  .guides__text > * + * {
+    margin-top: var(--space-s);
+  }
+
+  .guides__text p:not(.eyebrow) {
+    color: var(--text-muted);
+    line-height: var(--leading-relaxed);
+    max-width: var(--measure);
+  }
+
+  .guides__facts {
+    display: grid;
+    gap: var(--space-s);
+    margin: 0;
+    padding: var(--space-m);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-m);
+    align-content: start;
+  }
+
+  .guides__facts dt {
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .guides__facts dd {
+    margin: 0.15rem 0 0;
+    font-weight: 500;
+  }
+
+  .guide-list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .guide-list li {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .guide-list a {
+    display: block;
+    padding-block: var(--space-m);
+    text-decoration: none;
+    color: inherit;
+    transition: padding-inline-start var(--duration) var(--ease-out);
+  }
+
+  .guide-list a:hover {
+    padding-inline-start: var(--space-2xs);
+  }
+
+  .guide-list h3 {
+    font-size: var(--step-2);
+    color: var(--ink-800);
+  }
+
+  .guide-list a:hover h3 {
+    color: var(--link);
+  }
+
+  .guide-list p {
+    margin-top: var(--space-3xs);
+    color: var(--text-muted);
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 56rem) {
+    .guides {
+      grid-template-columns: 1.8fr 1fr;
+      gap: var(--space-2xl);
+      align-items: start;
+    }
+  }
+</style>

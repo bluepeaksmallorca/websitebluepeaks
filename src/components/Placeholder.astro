@@ -1,0 +1,128 @@
+---
+/**
+ * A generated ridgeline stands in wherever a photograph has not been supplied
+ * yet, so the layout can be judged for real instead of through grey boxes.
+ *
+ * The shape and palette are derived from the slug, so a given hike always gets
+ * the same image — no flicker between builds, and the cards look intentional
+ * rather than randomly generated.
+ *
+ * Replace these by adding `heroImage` to the entry's front matter; nothing
+ * else needs to change.
+ */
+interface Props {
+  /** Any stable string — the slug. Same seed, same picture. */
+  seed: string;
+  /** Announced to screen readers only when the placeholder carries meaning. */
+  label?: string;
+  /**
+   * 'card' for the 4:3 boxes in a grid, 'wide' for a full-bleed hero.
+   *
+   * These need genuinely different geometry, not just different scaling. A
+   * seven-peak ridgeline drawn in a square viewBox and stretched across a
+   * 1440px hero turns into three enormous triangles; the wide variant uses a
+   * broader viewBox and many more, smaller peaks so it still reads as a
+   * mountain range at any width, and survives the heavy cropping a hero gets
+   * on a phone.
+   */
+  variant?: 'card' | 'wide';
+}
+
+const { seed, label, variant = 'card' } = Astro.props;
+const wide = variant === 'wide';
+
+// Small deterministic string hash (FNV-1a), enough for picking variants.
+function hash(input: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < input.length; i++) {
+    h ^= input.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return Math.abs(h);
+}
+
+const h = hash(seed);
+const rand = (n: number, offset = 0) => ((h >> offset) % n) / n;
+
+// Six dusk-to-noon palettes, all drawn from the site's own blues and sands.
+const palettes = [
+  ['#1a4054', '#2f6d91', '#4a8ab0', '#d9cebb'],
+  ['#122d3d', '#235571', '#4d7d66', '#ebe4d8'],
+  ['#233a4a', '#3c6350', '#b0a693', '#f5f1ea'],
+  ['#1a4054', '#4d7d66', '#c2703d', '#f5f1ea'],
+  ['#12303f', '#2f6d91', '#b0a693', '#ebe4d8'],
+  ['#243b33', '#3c6350', '#857c6c', '#d9cebb'],
+];
+const palette = palettes[h % palettes.length];
+
+// Wide heroes get a broader canvas so the ridgeline is not stretched.
+const W = wide ? 200 : 100;
+const H = 100;
+
+/** Builds one ridgeline polygon across the viewBox. */
+function ridge(baseline: number, amplitude: number, offset: number, peaks: number): string {
+  const points: string[] = [`0,${H}`, `0,${baseline}`];
+  const step = W / peaks;
+  for (let i = 0; i <= peaks; i++) {
+    const x = i * step;
+    // Two out-of-phase sines give an irregular, non-repeating skyline.
+    const y =
+      baseline -
+      Math.abs(Math.sin(i * 1.7 + offset)) * amplitude -
+      Math.abs(Math.cos(i * 0.9 + offset * 1.4)) * amplitude * 0.45;
+    points.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+  }
+  points.push(`${W},${baseline}`, `${W},${H}`);
+  return points.join(' ');
+}
+
+// More, smaller peaks on the wide variant: detail that survives cropping.
+const layers = wide
+  ? [
+      { fill: palette[2], points: ridge(58 + rand(8, 3), 22, rand(6, 1) * 6, 17) },
+      { fill: palette[1], points: ridge(72 + rand(8, 5), 19, rand(6, 7) * 6 + 1.5, 13) },
+      { fill: palette[0], points: ridge(86 + rand(6, 9), 14, rand(6, 11) * 6 + 3, 9) },
+    ]
+  : [
+      { fill: palette[2], points: ridge(62 + rand(8, 3), 26, rand(6, 1) * 6, 7) },
+      { fill: palette[1], points: ridge(74 + rand(8, 5), 22, rand(6, 7) * 6 + 1.5, 5) },
+      { fill: palette[0], points: ridge(86 + rand(6, 9), 16, rand(6, 11) * 6 + 3, 4) },
+    ];
+
+const gradientId = `sky-${h.toString(36)}`;
+// Keep the sun in the upper middle, where a hero crop will still contain it.
+const sunR = wide ? 5 : 7;
+const sunY = wide ? 22 + rand(12, 13) : 30 + rand(20, 13);
+const sunX = wide ? W * (0.3 + rand(40, 17) / 100) : 20 + rand(60, 17);
+---
+
+<svg
+  class="placeholder"
+  viewBox={`0 0 ${W} ${H}`}
+  preserveAspectRatio="xMidYMid slice"
+  role={label ? 'img' : 'presentation'}
+  aria-label={label || undefined}
+  aria-hidden={label ? undefined : 'true'}
+>
+  <defs>
+    <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color={palette[3]}></stop>
+      <stop offset="70%" stop-color={palette[2]} stop-opacity="0.45"></stop>
+      <stop offset="100%" stop-color={palette[2]} stop-opacity="0.15"></stop>
+    </linearGradient>
+  </defs>
+
+  <rect width={W} height={H} fill={`url(#${gradientId})`}></rect>
+  <circle cx={sunX} cy={sunY} r={sunR} fill={palette[3]} opacity="0.5"></circle>
+
+  {layers.map((layer) => <polygon points={layer.points} fill={layer.fill} />)}
+</svg>
+
+<style>
+  .placeholder {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+  }
+</style>

@@ -1,0 +1,58 @@
+---
+/**
+ * Text-only page header for index and article pages, where a full-bleed hero
+ * would be noise. Sits below the sticky header rather than behind it.
+ */
+interface Props {
+  eyebrow?: string;
+  title: string;
+  lede?: string;
+}
+const { eyebrow, title, lede } = Astro.props;
+---
+
+<header class="page-header">
+  <div class="wrap">
+    <slot name="breadcrumbs" />
+    {eyebrow && <p class="eyebrow page-header__eyebrow">{eyebrow}</p>}
+    <h1 class="page-header__title">{title}</h1>
+    {lede && <p class="page-header__lede">{lede}</p>}
+    <slot />
+  </div>
+</header>
+
+<style>
+  .page-header {
+    padding-block: var(--space-xl) var(--space-l);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-subtle);
+  }
+
+  .page-header__eyebrow {
+    margin-bottom: var(--space-2xs);
+  }
+
+  .page-header__title {
+    font-size: var(--step-5);
+    max-width: 20ch;
+  }
+
+  .page-header__lede {
+    margin-top: var(--space-s);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--text-muted);
+    max-width: 46ch;
+  }
+
+  /* Breadcrumbs sit above the eyebrow with their own breathing room. */
+  .page-header :global(.crumbs) {
+    margin-bottom: var(--space-m);
+  }
+
+  @media (min-width: 48rem) {
+    .page-header {
+      padding-block: var(--space-2xl) var(--space-xl);
+    }
+  }
+</style>

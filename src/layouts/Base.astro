@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+
+import type { Locale } from '../data/site';
+import { LOCALES } from '../i18n/utils';
+import { localeTags } from '../i18n/ui';
+import BaseHead from '../components/BaseHead.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  routeKey: string;
+  availableLocales?: readonly Locale[];
+  image?: string;
+  imageAlt?: string;
+  ogType?: 'website' | 'article';
+  jsonLd?: string;
+  noindex?: boolean;
+  markdownUrl?: string;
+  /** True when this locale has no translation and English is being shown. */
+  isFallback?: boolean;
+  /** Lets the hero sit flush under the transparent header. */
+  flushHero?: boolean;
+}
+
+const {
+  locale,
+  routeKey,
+  availableLocales = LOCALES,
+  flushHero = false,
+  ...head
+} = Astro.props;
+---
+
+<!doctype html>
+<html lang={localeTags[locale]}>
+  <head>
+    <BaseHead
+      locale={locale}
+      routeKey={routeKey}
+      availableLocales={availableLocales}
+      {...head}
+    />
+  </head>
+
+  <body>
+    <Header locale={locale} routeKey={routeKey} />
+
+    <main id="main" class:list={[{ 'main--flush': flushHero }]}>
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+  </body>
+</html>
+
+<style>
+  main {
+    display: block;
+  }
+
+  /*
+    Pages with a full-bleed hero pull it up behind the sticky header; every
+    other page just starts below it.
+  */
+  .main--flush {
+    margin-top: calc(var(--header-h) * -1);
+  }
+</style>

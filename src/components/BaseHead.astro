@@ -1,0 +1,143 @@
+---
+import { site, type Locale } from '../data/site';
+import { absoluteUrl, localePath, LOCALES } from '../i18n/utils';
+import { localeTags } from '../i18n/ui';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  /** Route key shared across languages, e.g. 'hikes/castell-dalaro'. */
+  routeKey: string;
+  /** Which locales actually have this page; drives hreflang. */
+  availableLocales?: readonly Locale[];
+  image?: string;
+  imageAlt?: string;
+  /** 'article' for blog posts, 'website' otherwise. */
+  ogType?: 'website' | 'article';
+  /** Serialised JSON-LD @graph from src/lib/schema.ts. */
+  jsonLd?: string;
+  noindex?: boolean;
+  /** Absolute URL of the plain-text mirror of this page, if one exists. */
+  markdownUrl?: string;
+  /** True when this locale has no translation and English is being shown. */
+  isFallback?: boolean;
+}
+
+const {
+  title,
+  description,
+  locale,
+  routeKey,
+  availableLocales = LOCALES,
+  image = '/og/default.png',
+  imageAlt = site.name,
+  ogType = 'website',
+  jsonLd,
+  noindex = false,
+  markdownUrl,
+  isFallback = false,
+} = Astro.props;
+
+/*
+  A page with no translation yet still exists at its localised URL — /de/about/
+  serves the English text with a notice — so that navigation stays coherent for
+  someone browsing the site in German.
+
+  For search engines that is six URLs with identical English content, which is
+  textbook duplication. The fix is to canonicalise those URLs back to the
+  English original and let it carry the hreflang set for the whole cluster.
+  As soon as a real translation is added the page self-canonicalises again,
+  with no code change.
+*/
+const selfUrl = absoluteUrl(localePath(locale, routeKey));
+const englishUrl = absoluteUrl(localePath('en', routeKey));
+const canonical = isFallback ? englishUrl : selfUrl;
+const ogImage = absoluteUrl(image);
+
+// Full title, but never double up when the page IS the brand.
+const fullTitle = title.includes(site.shortName) ? title : `${title} — ${site.name}`;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+
+{noindex && <meta name="robots" content="noindex, follow" />}
+{
+  !noindex && (
+    <meta
+      name="robots"
+      content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1"
+    />
+  )
+}
+
+{/*
+  Language alternates, emitted only for locales that genuinely serve this page
+  in that language — pointing hreflang at a URL showing fallback English is
+  worse than omitting it.
+
+  Fallback pages emit none at all: they canonicalise to the English URL, and
+  that page already declares the whole cluster.
+*/}
+{
+  !isFallback &&
+    availableLocales.map((alt) => (
+      <link
+        rel="alternate"
+        hreflang={localeTags[alt]}
+        href={absoluteUrl(localePath(alt, routeKey))}
+      />
+    ))
+}
+{!isFallback && <link rel="alternate" hreflang="x-default" href={englishUrl} />}
+
+{/*
+  A clean Markdown copy of the page. Answer engines that follow it get the
+  content without navigation, cookie banners or layout noise.
+*/}
+{markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} />}
+
+{/* Open Graph */}
+<meta property="og:type" content={ogType} />
+<meta property="og:site_name" content={site.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:locale" content={locale} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:image:alt" content={imageAlt} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+{/* Icons & theme */}
+<link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/site.webmanifest" />
+<meta name="theme-color" content="#1a4054" />
+
+{/*
+  The two latin subsets are on the critical path for every page; preloading
+  them removes a render-blocking round trip on mobile.
+*/}
+<link
+  rel="preload"
+  href="/fonts/fraunces-latin.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+
+<link rel="sitemap" href="/sitemap.xml" />
+
+{jsonLd && <script type="application/ld+json" is:inline set:html={jsonLd} />}

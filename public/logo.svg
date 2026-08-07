@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 104" width="420" height="104">
+  <rect width="420" height="104" fill="#f5f1ea"/>
+  <g transform="translate(18 12) scale(0.8)">
+  <path d="M4 76 L36 18 L57 54 L65 41 L100 76 Z" fill="#1a4054" opacity="0.16"/>
+  <path d="M4 76 L36 18 L57 54" fill="none" stroke="#1a4054" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M50 66 L65 41 L100 76" fill="none" stroke="#1a4054" stroke-width="7"
+        stroke-linecap="round" stroke-linejoin="round" opacity="0.55"/>
+</g>
+  <text x="118" y="66" font-family="Georgia, 'Times New Roman', serif" font-size="44"
+        font-weight="500" fill="#13202a">Blue <tspan fill="#2f6d91">Peaks</tspan></text>
+</svg>

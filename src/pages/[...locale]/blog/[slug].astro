@@ -1,0 +1,206 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+import { Image } from 'astro:assets';
+
+import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import AnswerBox from '../../../components/AnswerBox.astro';
+import Faq from '../../../components/Faq.astro';
+import Toc from '../../../components/Toc.astro';
+import ContactCta from '../../../components/ContactCta.astro';
+import TranslationNotice from '../../../components/TranslationNotice.astro';
+
+import { DEFAULT_LOCALE, type Locale } from '../../../data/site';
+import {
+  getLocalisedEntry,
+  getLocalisedEntries,
+  getTranslatedLocales,
+  localisedPaths,
+  parseId,
+} from '../../../lib/content';
+import { localePath, useTranslations, absoluteUrl, formatDate } from '../../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, faqNode, articleNode, trail } from '../../../lib/schema';
+
+export const getStaticPaths = (async () => localisedPaths('blog')) satisfies GetStaticPaths;
+
+const { locale, slug } = Astro.props as { locale: Locale; slug: string };
+const t = useTranslations(locale);
+
+const entry = await getLocalisedEntry('blog', locale, slug);
+if (!entry) return Astro.rewrite('/404');
+
+const { Content, headings } = await render(entry);
+const { data } = entry;
+
+const availableLocales = await getTranslatedLocales('blog', slug);
+
+const related = (await getLocalisedEntries('blog', locale)).filter((other) =>
+  data.related.includes(parseId(other.id).slug)
+);
+
+const routeKey = `blog/${slug}`;
+const url = absoluteUrl(localePath(locale, routeKey));
+const image = data.heroImage ? absoluteUrl(data.heroImage.src) : undefined;
+const blogLabel = t('nav.blog');
+
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: data.title,
+    description: data.description,
+    locale,
+    updated: data.updated ?? data.published,
+    primaryImage: image,
+  }),
+  breadcrumbNode(url, trail(locale, [{ name: blogLabel, path: 'blog' }])),
+  articleNode({
+    url,
+    title: data.title,
+    description: data.description,
+    locale,
+    published: data.published,
+    updated: data.updated,
+    image,
+    authorName: data.author,
+    tags: data.tags,
+  }),
+  faqNode(url, data.faqs),
+]);
+---
+
+<Base
+  title={data.metaTitle ?? data.title}
+  description={data.description}
+  locale={locale}
+  routeKey={routeKey}
+  availableLocales={availableLocales}
+  isFallback={entry.isFallback}
+  image={image}
+  ogType="article"
+  jsonLd={jsonLd}
+  markdownUrl={locale === DEFAULT_LOCALE ? absoluteUrl(`/${routeKey}.md`) : undefined}
+>
+  <PageHeader title={data.title}>
+    <Breadcrumbs
+      slot="breadcrumbs"
+      locale={locale}
+      crumbs={[{ name: blogLabel, path: 'blog' }]}
+      current={data.title}
+    />
+    <p class="post__meta">
+      <time datetime={data.published.toISOString()}>{formatDate(data.published, locale)}</time>
+      <span>·</span>
+      <span>{t('label.by')} {data.author}</span>
+    </p>
+  </PageHeader>
+
+  <div class="wrap article">
+    <article class="article__main">
+      {entry.isFallback && <TranslationNotice locale={locale} />}
+
+      {
+        data.heroImage && (
+          <Image
+            class="post__hero"
+            src={data.heroImage}
+            alt={data.heroAlt}
+            widths={[640, 960, 1280]}
+            sizes="(min-width: 64rem) 46rem, 92vw"
+            loading="eager"
+            fetchpriority="high"
+          />
+        )
+      }
+
+      <AnswerBox>
+        <p>{data.summary}</p>
+      </AnswerBox>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <Faq locale={locale} faqs={data.faqs} level={3} />
+
+      {
+        related.length > 0 && (
+          <nav class="article__related" aria-label={t('label.related')}>
+            <h2>{t('label.related')}</h2>
+            <ul>
+              {related.map((other) => (
+                <li>
+                  <a href={localePath(locale, `blog/${parseId(other.id).slug}`)}>
+                    {other.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </article>
+
+    <aside class="article__aside">
+      <Toc locale={locale} headings={headings} />
+    </aside>
+  </div>
+
+  <ContactCta locale={locale} />
+</Base>
+
+<style>
+  .post__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2xs);
+    margin-top: var(--space-s);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .post__hero {
+    width: 100%;
+    border-radius: var(--radius-l);
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+  }
+
+  .article {
+    display: grid;
+    gap: var(--space-xl);
+    padding-block: var(--space-xl) var(--section-gap);
+    align-items: start;
+  }
+
+  .article__main > * + * {
+    margin-top: var(--space-l);
+  }
+
+  .article__related h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-xs);
+  }
+
+  .article__related ul {
+    display: grid;
+    gap: var(--space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  @media (min-width: 64rem) {
+    .article {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      gap: var(--space-2xl);
+    }
+
+    .article__aside {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-m));
+      order: 2;
+    }
+  }
+</style>

@@ -1,0 +1,50 @@
+# Cloudflare Pages redirects.
+# https://developers.cloudflare.com/pages/configuration/redirects/
+#
+# WordPress → Astro migration map.
+#
+# Every URL that currently ranks or has links pointing at it must land
+# somewhere sensible, or the move to Cloudflare costs you the search equity
+# the old site built up. 301 (permanent) is what passes that equity on.
+#
+# >>> BEFORE GOING LIVE <<<
+# Export the full list of live URLs from the WordPress site — Google Search
+# Console › Pages, or a crawl with Screaming Frog — and add a line here for
+# every one that is not already reproduced at the same path. The entries below
+# cover the paths we could confirm; they are a starting point, not a complete
+# map.
+
+# --- Known WordPress paths ------------------------------------------------
+
+# The old /medical/ page. Point this at whichever new page carries that
+# content — /about/ covers guide qualifications and insurance today.
+/medical            /about/                 301
+/medical/*          /about/                 301
+
+# WordPress feed and admin paths that should not 404 noisily.
+/feed               /blog/                  301
+/feed/*             /blog/                  301
+/comments/feed      /blog/                  301
+/wp-content/*       /                       301
+/wp-includes/*      /                       301
+/xmlrpc.php         /                       301
+
+# WordPress date-based archives, if the blog used them.
+/20:year/:month/:slug   /blog/:slug/        301
+
+# --- Common WordPress patterns worth catching ------------------------------
+
+/category/*         /blog/                  301
+/tag/*              /blog/                  301
+/author/*           /about/                 301
+
+# --- Language paths --------------------------------------------------------
+# If the WordPress site used a plugin with /en/ prefixes, English now lives at
+# the root. Uncomment if that applies.
+# /en/*             /:splat                 301
+
+# --- Trailing-slash safety net ---------------------------------------------
+# The site is built with trailing slashes. Cloudflare Pages normalises most of
+# this automatically; these catch the main hand-typed variants.
+/hikes/index        /hikes/                 301
+/index.html         /                       301

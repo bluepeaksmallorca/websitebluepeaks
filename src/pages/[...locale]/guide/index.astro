@@ -1,0 +1,145 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import ContactCta from '../../../components/ContactCta.astro';
+
+import type { Locale } from '../../../data/site';
+import { guideIndex } from '../../../data/pages/listings';
+import { localeStaticPaths } from '../../../lib/paths';
+import { getLocalisedEntries, parseId, byOrder } from '../../../lib/content';
+import { useTranslations, absoluteUrl, localePath } from '../../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, trail } from '../../../lib/schema';
+
+export const getStaticPaths = (() => localeStaticPaths()) satisfies GetStaticPaths;
+
+const { locale } = Astro.props as { locale: Locale };
+const t = useTranslations(locale);
+const copy = guideIndex[locale];
+
+const pages = (await getLocalisedEntries('guide', locale)).sort(byOrder);
+
+const routeKey = 'guide';
+const url = absoluteUrl(localePath(locale, routeKey));
+
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
+    locale,
+    type: 'CollectionPage',
+    updated: new Date(),
+  }),
+  breadcrumbNode(url, trail(locale, [{ name: t('nav.guide'), path: 'guide' }])),
+  {
+    '@type': 'ItemList',
+    '@id': `${url}#list`,
+    numberOfItems: pages.length,
+    itemListElement: pages.map((page, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: page.data.title,
+      url: absoluteUrl(localePath(locale, `guide/${parseId(page.id).slug}`)),
+    })),
+  },
+]);
+---
+
+<Base
+  title={copy.metaTitle}
+  description={copy.metaDescription}
+  locale={locale}
+  routeKey={routeKey}
+  jsonLd={jsonLd}
+>
+  <PageHeader eyebrow={copy.eyebrow} title={copy.heading} lede={copy.lede} />
+
+  <section class="section">
+    <div class="wrap">
+      <p class="guide-intro">{copy.intro}</p>
+
+      <ul class="guide-index">
+        {
+          pages.map((page) => (
+            <li class="guide-index__item">
+              <a href={localePath(locale, `guide/${parseId(page.id).slug}`)}>
+                <h2>{page.data.title}</h2>
+                <p>{page.data.summary}</p>
+                <span class="guide-index__more">{t('cta.readMore')} →</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <ContactCta locale={locale} />
+</Base>
+
+<style>
+  .guide-intro {
+    max-width: var(--measure);
+    margin-bottom: var(--space-xl);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--text-muted);
+  }
+
+  .guide-index {
+    display: grid;
+    gap: var(--space-m);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .guide-index__item a {
+    display: block;
+    height: 100%;
+    padding: var(--space-m);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    color: inherit;
+    text-decoration: none;
+    transition:
+      border-color var(--duration) var(--ease-out),
+      box-shadow var(--duration) var(--ease-out),
+      transform var(--duration) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .guide-index__item a:hover {
+      transform: translateY(-3px);
+      border-color: var(--border-strong);
+      box-shadow: var(--shadow-m);
+    }
+  }
+
+  .guide-index h2 {
+    font-size: var(--step-2);
+  }
+
+  .guide-index p {
+    margin-top: var(--space-2xs);
+    color: var(--text-muted);
+    line-height: var(--leading-relaxed);
+  }
+
+  .guide-index__more {
+    display: inline-block;
+    margin-top: var(--space-s);
+    font-size: var(--step--1);
+    font-weight: 500;
+    color: var(--link);
+  }
+
+  @media (min-width: 52rem) {
+    .guide-index {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

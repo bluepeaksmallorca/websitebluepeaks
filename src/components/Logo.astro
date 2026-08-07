@@ -1,0 +1,94 @@
+---
+interface Props {
+  /** 'ink' on light backgrounds, 'light' on the dark footer. */
+  tone?: 'ink' | 'light';
+}
+const { tone = 'ink' } = Astro.props;
+---
+
+<span class:list={['logo', `logo--${tone}`]}>
+  <svg
+    class="logo__mark"
+    viewBox="0 0 32 26"
+    width="30"
+    height="24"
+    aria-hidden="true"
+    focusable="false"
+  >
+    {/* Two ridgelines: the near peak solid, the far one drawn, like the Tramuntana at dusk. */}
+    <path
+      d="M1 23.5 L11.5 5 L18 16.5 L20.5 12.5 L31 23.5 Z"
+      fill="currentColor"
+      opacity="0.16"></path>
+    <path
+      d="M1 23.5 L11.5 5 L18 16.5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"></path>
+    <path
+      d="M15.5 20.5 L20.5 12.5 L31 23.5"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity="0.55"></path>
+  </svg>
+
+  <span class="logo__word">
+    <span class="logo__word-1">Blue</span>
+    <span class="logo__word-2">Peaks</span>
+  </span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .logo__mark {
+    flex-shrink: 0;
+    color: var(--blue-600);
+  }
+
+  .logo--light .logo__mark {
+    color: var(--sand-200);
+  }
+
+  .logo__word {
+    display: inline-flex;
+    gap: 0.28em;
+    font-family: var(--font-display);
+    font-size: 1.28rem;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .logo__word-1 {
+    color: var(--ink-900);
+  }
+
+  .logo__word-2 {
+    color: var(--blue-600);
+  }
+
+  .logo--light .logo__word-1 {
+    color: var(--sand-50);
+  }
+
+  .logo--light .logo__word-2 {
+    color: var(--sand-300);
+  }
+
+  @media (min-width: 40rem) {
+    .logo__word {
+      font-size: 1.42rem;
+    }
+  }
+</style>

@@ -1,0 +1,129 @@
+---
+import type { GetStaticPaths } from 'astro';
+
+import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import ContactCta from '../../../components/ContactCta.astro';
+import Placeholder from '../../../components/Placeholder.astro';
+import { Image } from 'astro:assets';
+
+import type { Locale } from '../../../data/site';
+import { blogIndex } from '../../../data/pages/listings';
+import { localeStaticPaths } from '../../../lib/paths';
+import { getLocalisedEntries, parseId, byDateDesc } from '../../../lib/content';
+import { useTranslations, absoluteUrl, localePath, formatDate } from '../../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, trail } from '../../../lib/schema';
+
+export const getStaticPaths = (() => localeStaticPaths()) satisfies GetStaticPaths;
+
+const { locale } = Astro.props as { locale: Locale };
+const t = useTranslations(locale);
+const copy = blogIndex[locale];
+
+const posts = (await getLocalisedEntries('blog', locale)).sort(byDateDesc);
+
+const routeKey = 'blog';
+const url = absoluteUrl(localePath(locale, routeKey));
+
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: copy.metaTitle,
+    description: copy.metaDescription,
+    locale,
+    type: 'CollectionPage',
+    updated: new Date(),
+  }),
+  breadcrumbNode(url, trail(locale, [{ name: t('nav.blog'), path: 'blog' }])),
+  {
+    '@type': 'Blog',
+    '@id': `${url}#blog`,
+    name: copy.heading,
+    description: copy.metaDescription,
+    inLanguage: locale,
+    blogPost: posts.map((post) => ({
+      '@type': 'BlogPosting',
+      headline: post.data.title,
+      url: absoluteUrl(localePath(locale, `blog/${parseId(post.id).slug}`)),
+      datePublished: post.data.published.toISOString(),
+    })),
+  },
+]);
+---
+
+<Base
+  title={copy.metaTitle}
+  description={copy.metaDescription}
+  locale={locale}
+  routeKey={routeKey}
+  jsonLd={jsonLd}
+>
+  <PageHeader eyebrow={copy.eyebrow} title={copy.heading} lede={copy.lede} />
+
+  <section class="section">
+    <div class="wrap">
+      <p class="blog-intro">{copy.intro}</p>
+
+      {
+        posts.length === 0 ? (
+          <p class="muted">Nothing published yet.</p>
+        ) : (
+          <div class="grid" style="--min: 19rem">
+            {posts.map((post, index) => {
+              const slug = parseId(post.id).slug;
+              return (
+                <article class="card">
+                  <div class="card__media">
+                    {post.data.heroImage ? (
+                      <Image
+                        src={post.data.heroImage}
+                        alt={post.data.heroAlt}
+                        widths={[320, 480, 640, 800]}
+                        sizes="(min-width: 64rem) 22rem, (min-width: 40rem) 45vw, 92vw"
+                        loading={index < 3 ? 'eager' : 'lazy'}
+                      />
+                    ) : (
+                      <Placeholder seed={slug} />
+                    )}
+                  </div>
+                  <div class="card__body">
+                    <h2 class="card__title">
+                      <a href={localePath(locale, `blog/${slug}`)}>{post.data.title}</a>
+                    </h2>
+                    <p class="blog-card__summary">{post.data.summary}</p>
+                    <p class="card__meta">
+                      <time datetime={post.data.published.toISOString()}>
+                        {formatDate(post.data.published, locale)}
+                      </time>
+                      <span>
+                        {t('label.by')} {post.data.author}
+                      </span>
+                    </p>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )
+      }
+    </div>
+  </section>
+
+  <ContactCta locale={locale} />
+</Base>
+
+<style>
+  .blog-intro {
+    max-width: var(--measure);
+    margin-bottom: var(--space-xl);
+    font-size: var(--step-1);
+    line-height: var(--leading-snug);
+    color: var(--text-muted);
+  }
+
+  .blog-card__summary {
+    color: var(--text-muted);
+    font-size: var(--step--1);
+    line-height: var(--leading-normal);
+  }
+</style>

@@ -1,0 +1,129 @@
+---
+import type { MarkdownHeading } from 'astro';
+import type { Locale } from '../data/site';
+import { useTranslations } from '../i18n/utils';
+
+/**
+ * In-page contents, built from the article's own h2s.
+ *
+ * Hidden on narrow screens: on a phone it would push the article itself below
+ * the fold, and the browser's own find-in-page does the job better there.
+ */
+interface Props {
+  locale: Locale;
+  headings: MarkdownHeading[];
+}
+
+const { locale, headings } = Astro.props;
+const t = useTranslations(locale);
+
+// Only top-level sections. A two-level tree in a 15rem column reads as clutter.
+const items = headings.filter((heading) => heading.depth === 2);
+---
+
+{
+  items.length > 2 && (
+    <nav class="toc" aria-labelledby="toc-heading">
+      <h2 class="toc__heading" id="toc-heading">
+        {t('label.contents')}
+      </h2>
+      <ol class="toc__list">
+        {items.map((heading) => (
+          <li>
+            <a href={`#${heading.slug}`}>{heading.text}</a>
+          </li>
+        ))}
+      </ol>
+    </nav>
+  )
+}
+
+<style>
+  .toc {
+    display: none;
+  }
+
+  .toc__heading {
+    font-family: var(--font-body);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-caps);
+    text-transform: uppercase;
+    color: var(--text-faint);
+    margin-bottom: var(--space-xs);
+  }
+
+  .toc__list {
+    display: grid;
+    gap: 0.55rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--border);
+  }
+
+  .toc__list a {
+    display: block;
+    padding-left: var(--space-s);
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-size: var(--step--1);
+    line-height: var(--leading-snug);
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+
+  .toc__list a:hover {
+    color: var(--link);
+    border-left-color: var(--border-strong);
+  }
+
+  .toc__list a.is-active {
+    color: var(--primary);
+    border-left-color: var(--primary);
+    font-weight: 500;
+  }
+
+  @media (min-width: 64rem) {
+    .toc {
+      display: block;
+    }
+  }
+</style>
+
+<script>
+  // Highlights the section currently in view. Cheap, and only runs where the
+  // contents list is actually visible.
+  const toc = document.querySelector('.toc');
+  if (toc && window.matchMedia('(min-width: 64rem)').matches) {
+    const links = new Map<string, HTMLAnchorElement>();
+    toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]').forEach((link) => {
+      links.set(decodeURIComponent(link.hash.slice(1)), link);
+    });
+
+    const targets = [...links.keys()]
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (targets.length) {
+      let active: HTMLAnchorElement | undefined;
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (!entry.isIntersecting) continue;
+            const link = links.get(entry.target.id);
+            if (!link || link === active) continue;
+            active?.classList.remove('is-active');
+            link.classList.add('is-active');
+            active = link;
+          }
+        },
+        // Trigger as a heading reaches the upper third of the viewport.
+        { rootMargin: '-10% 0px -70% 0px', threshold: 0 }
+      );
+
+      targets.forEach((target) => observer.observe(target));
+    }
+  }
+</script>

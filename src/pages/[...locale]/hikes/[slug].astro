@@ -1,0 +1,307 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+import Base from '../../../layouts/Base.astro';
+import Hero from '../../../components/Hero.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import AnswerBox from '../../../components/AnswerBox.astro';
+import FactTable from '../../../components/FactTable.astro';
+import Faq from '../../../components/Faq.astro';
+import HikeCard from '../../../components/HikeCard.astro';
+import ContactCta from '../../../components/ContactCta.astro';
+import TranslationNotice from '../../../components/TranslationNotice.astro';
+
+import { site, DEFAULT_LOCALE, type Locale } from '../../../data/site';
+import {
+  getLocalisedEntry,
+  getLocalisedEntries,
+  getTranslatedLocales,
+  localisedPaths,
+  parseId,
+} from '../../../lib/content';
+import { localePath, useTranslations, absoluteUrl, formatDate } from '../../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, faqNode, hikeNodes, trail } from '../../../lib/schema';
+
+export const getStaticPaths = (async () => localisedPaths('hikes')) satisfies GetStaticPaths;
+
+const { locale, slug } = Astro.props as { locale: Locale; slug: string };
+const t = useTranslations(locale);
+
+const entry = await getLocalisedEntry('hikes', locale, slug);
+if (!entry) return Astro.rewrite('/404');
+
+const { Content } = await render(entry);
+const { data } = entry;
+
+const availableLocales = await getTranslatedLocales('hikes', slug);
+
+const related = (await getLocalisedEntries('hikes', locale)).filter((other) =>
+  data.related.includes(parseId(other.id).slug)
+);
+
+const routeKey = `hikes/${slug}`;
+const url = absoluteUrl(localePath(locale, routeKey));
+const image = data.heroImage ? absoluteUrl(data.heroImage.src) : undefined;
+
+const hikesLabel = t('nav.hikes');
+
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: data.title,
+    description: data.description,
+    locale,
+    updated: data.updated,
+    primaryImage: image,
+  }),
+  breadcrumbNode(url, trail(locale, [{ name: hikesLabel, path: 'hikes' }])),
+  ...hikeNodes({
+    url,
+    locale,
+    title: data.title,
+    summary: data.summary,
+    image,
+    updated: data.updated,
+    priceFrom: data.priceFrom,
+    guided: data.guided,
+    facts: data.facts,
+    highlights: data.highlights,
+  }),
+  faqNode(url, data.faqs),
+]);
+---
+
+<Base
+  title={data.metaTitle ?? `${data.title} — hiking route & guided walk`}
+  description={data.description}
+  locale={locale}
+  routeKey={routeKey}
+  availableLocales={availableLocales}
+  isFallback={entry.isFallback}
+  image={image}
+  imageAlt={data.heroAlt}
+  jsonLd={jsonLd}
+  markdownUrl={locale === DEFAULT_LOCALE ? absoluteUrl(`/${routeKey}.md`) : undefined}
+  flushHero
+>
+  <Hero
+    eyebrow={site.areaServed[0]}
+    title={data.title}
+    image={data.heroImage}
+    imageAlt={data.heroAlt}
+    seed={slug}
+    size="compact"
+  />
+
+  <div class="wrap hike__crumbs">
+    <Breadcrumbs
+      locale={locale}
+      crumbs={[{ name: hikesLabel, path: 'hikes' }]}
+      current={data.title}
+    />
+  </div>
+
+  <div class="wrap hike">
+    <article class="hike__main">
+      {entry.isFallback && <TranslationNotice locale={locale} />}
+
+      <AnswerBox>
+        <p>{data.summary}</p>
+      </AnswerBox>
+
+      {
+        data.highlights.length > 0 && (
+          <section class="highlights" aria-labelledby="highlights-heading">
+            <h2 id="highlights-heading" class="highlights__heading">
+              {t('label.highlights')}
+            </h2>
+            <ul class="highlights__list">
+              {data.highlights.map((item) => (
+                <li>{item}</li>
+              ))}
+            </ul>
+          </section>
+        )
+      }
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <Faq locale={locale} faqs={data.faqs} level={3} />
+
+      <p class="hike__updated">
+        {t('label.updated')}: <time datetime={data.updated.toISOString()}>
+          {formatDate(data.updated, locale)}
+        </time>
+      </p>
+    </article>
+
+    {/*
+      Sticky on desktop so the numbers and the enquiry button stay in view
+      through a long article; a plain block on phones, above the fold.
+    */}
+    <aside class="hike__aside">
+      <div class="hike__panel">
+        <h2 class="hike__panel-title">{t('facts.atAGlance')}</h2>
+        <FactTable locale={locale} facts={data.facts} bare />
+
+        <div class="hike__panel-cta">
+          <p class="hike__price">
+            <strong>€{data.priceFrom ?? site.pricing.privateDayRate}</strong>
+            <span>{t('label.perDay')} · {t('label.perGroup')}</span>
+          </p>
+          <a class="btn btn--primary btn--block" href={localePath(locale, 'contact')}>
+            {t('cta.enquire')}
+          </a>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  {
+    related.length > 0 && (
+      <section class="section section--sunken" aria-labelledby="related-heading">
+        <div class="wrap">
+          <h2 id="related-heading" class="section-head">
+            {t('label.related')}
+          </h2>
+          <div class="grid" style="--min: 18rem">
+            {related.map((other, index) => (
+              <HikeCard
+                locale={locale}
+                slug={parseId(other.id).slug}
+                title={other.data.title}
+                summary={other.data.summary}
+                image={other.data.heroImage}
+                imageAlt={other.data.heroAlt}
+                facts={other.data.facts}
+                index={index}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <ContactCta locale={locale} context={data.title} />
+</Base>
+
+<style>
+  .hike__crumbs {
+    padding-top: var(--space-m);
+  }
+
+  .hike {
+    display: grid;
+    gap: var(--space-xl);
+    padding-block: var(--space-l) var(--section-gap);
+    align-items: start;
+  }
+
+  .hike__main > * + * {
+    margin-top: var(--space-l);
+  }
+
+  .highlights__heading {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-xs);
+  }
+
+  .highlights__list {
+    display: grid;
+    gap: var(--space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .highlights__list li {
+    position: relative;
+    padding-left: 1.6rem;
+    color: var(--text-muted);
+    line-height: var(--leading-normal);
+  }
+
+  /* A small ridgeline tick instead of a bullet. */
+  .highlights__list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.62em;
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--pine-500);
+    clip-path: polygon(0% 100%, 50% 0%, 100% 100%);
+  }
+
+  .hike__updated {
+    font-size: var(--step--1);
+    color: var(--text-faint);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--border);
+  }
+
+  .hike__panel {
+    padding: var(--space-m);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-l);
+    box-shadow: var(--shadow-s);
+  }
+
+  .hike__panel-title {
+    font-size: var(--step-1);
+    margin-bottom: var(--space-2xs);
+  }
+
+  .hike__panel-cta {
+    margin-top: var(--space-m);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--border);
+  }
+
+  .hike__price {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: var(--space-xs);
+  }
+
+  .hike__price strong {
+    font-family: var(--font-display);
+    font-size: var(--step-3);
+    font-weight: 500;
+    line-height: 1.1;
+  }
+
+  .hike__price span {
+    font-size: var(--step--1);
+    color: var(--text-muted);
+  }
+
+  @media (min-width: 60rem) {
+    .hike {
+      grid-template-columns: minmax(0, 1fr) 20rem;
+      gap: var(--space-2xl);
+    }
+
+    .hike__aside {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-m));
+    }
+
+    /* The panel already carries the facts; put it first in reading order on
+       narrow screens by keeping source order, and beside the text here. */
+    .hike__main {
+      grid-row: 1;
+      grid-column: 1;
+    }
+
+    .hike__aside {
+      grid-row: 1;
+      grid-column: 2;
+    }
+  }
+</style>

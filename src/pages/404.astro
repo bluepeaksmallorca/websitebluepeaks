@@ -1,0 +1,91 @@
+---
+import Base from '../layouts/Base.astro';
+import { localePath } from '../i18n/utils';
+import { DEFAULT_LOCALE } from '../data/site';
+
+/**
+ * Cloudflare Pages serves /404.html for any unmatched path automatically.
+ *
+ * It is a single English page rather than one per language: a 404 has no
+ * locale to read from the URL in the general case, and offering the main
+ * sections is more useful than guessing.
+ */
+const locale = DEFAULT_LOCALE;
+
+const links = [
+  { label: 'Hiking routes we guide', path: 'hikes' },
+  { label: 'Private hikes', path: 'private-hikes' },
+  { label: 'Practical guide to hiking in Mallorca', path: 'guide' },
+  { label: 'About Helena & Matija', path: 'about' },
+  { label: 'Get in touch', path: 'contact' },
+];
+---
+
+<Base
+  title="Page not found"
+  description="That page does not exist. Here is the way back to the mountains."
+  locale={locale}
+  routeKey="404"
+  noindex
+>
+  <div class="notfound">
+    <div class="wrap">
+      <p class="eyebrow">Error 404</p>
+      <h1>You have wandered off the path</h1>
+      <p class="lede">
+        That page does not exist — it may have moved when we rebuilt the site.
+        Everything below is still where it should be.
+      </p>
+
+      <ul class="notfound__links">
+        {
+          links.map((link) => (
+            <li>
+              <a href={localePath(locale, link.path)}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</Base>
+
+<style>
+  .notfound {
+    padding-block: var(--space-3xl);
+  }
+
+  .notfound h1 {
+    margin-top: var(--space-2xs);
+    max-width: 14ch;
+  }
+
+  .notfound .lede {
+    margin-top: var(--space-s);
+  }
+
+  .notfound__links {
+    display: grid;
+    gap: 0;
+    margin: var(--space-xl) 0 0;
+    padding: 0;
+    list-style: none;
+    max-width: 32rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .notfound__links li {
+    border-bottom: 1px solid var(--border);
+  }
+
+  .notfound__links a {
+    display: block;
+    padding-block: var(--space-s);
+    font-weight: 500;
+    text-decoration: none;
+  }
+
+  .notfound__links a:hover {
+    text-decoration: underline;
+  }
+</style>

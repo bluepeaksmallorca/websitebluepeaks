@@ -1,0 +1,187 @@
+---
+import { render } from 'astro:content';
+import type { GetStaticPaths } from 'astro';
+
+import Base from '../../../layouts/Base.astro';
+import PageHeader from '../../../components/PageHeader.astro';
+import Breadcrumbs from '../../../components/Breadcrumbs.astro';
+import AnswerBox from '../../../components/AnswerBox.astro';
+import Faq from '../../../components/Faq.astro';
+import Toc from '../../../components/Toc.astro';
+import ContactCta from '../../../components/ContactCta.astro';
+import TranslationNotice from '../../../components/TranslationNotice.astro';
+
+import { DEFAULT_LOCALE, type Locale } from '../../../data/site';
+import {
+  getLocalisedEntry,
+  getLocalisedEntries,
+  getTranslatedLocales,
+  localisedPaths,
+  parseId,
+} from '../../../lib/content';
+import { localePath, useTranslations, absoluteUrl, formatDate } from '../../../i18n/utils';
+import { buildGraph, webPageNode, breadcrumbNode, faqNode, articleNode, trail } from '../../../lib/schema';
+
+export const getStaticPaths = (async () => localisedPaths('guide')) satisfies GetStaticPaths;
+
+const { locale, slug } = Astro.props as { locale: Locale; slug: string };
+const t = useTranslations(locale);
+
+const entry = await getLocalisedEntry('guide', locale, slug);
+if (!entry) return Astro.rewrite('/404');
+
+const { Content, headings } = await render(entry);
+const { data } = entry;
+
+const availableLocales = await getTranslatedLocales('guide', slug);
+
+const related = (await getLocalisedEntries('guide', locale)).filter((other) =>
+  data.related.includes(parseId(other.id).slug)
+);
+
+const routeKey = `guide/${slug}`;
+const url = absoluteUrl(localePath(locale, routeKey));
+const image = data.heroImage ? absoluteUrl(data.heroImage.src) : undefined;
+const guideLabel = t('nav.guide');
+
+const jsonLd = buildGraph(locale, [
+  webPageNode({
+    url,
+    title: data.title,
+    description: data.description,
+    locale,
+    updated: data.updated,
+    primaryImage: image,
+  }),
+  breadcrumbNode(url, trail(locale, [{ name: guideLabel, path: 'guide' }])),
+  // Reference pages are editorial, so they carry Article markup as well —
+  // it is what makes them citable as a source rather than as a product page.
+  articleNode({
+    url,
+    title: data.title,
+    description: data.description,
+    locale,
+    published: data.updated,
+    updated: data.updated,
+    image,
+    authorName: 'Helena',
+  }),
+  faqNode(url, data.faqs),
+]);
+---
+
+<Base
+  title={data.metaTitle ?? data.title}
+  description={data.description}
+  locale={locale}
+  routeKey={routeKey}
+  availableLocales={availableLocales}
+  isFallback={entry.isFallback}
+  image={image}
+  jsonLd={jsonLd}
+  markdownUrl={locale === DEFAULT_LOCALE ? absoluteUrl(`/${routeKey}.md`) : undefined}
+>
+  <PageHeader title={data.title}>
+    <Breadcrumbs
+      slot="breadcrumbs"
+      locale={locale}
+      crumbs={[{ name: guideLabel, path: 'guide' }]}
+      current={data.title}
+    />
+  </PageHeader>
+
+  <div class="wrap article">
+    <article class="article__main">
+      {entry.isFallback && <TranslationNotice locale={locale} />}
+
+      <AnswerBox>
+        <p>{data.summary}</p>
+      </AnswerBox>
+
+      <div class="prose">
+        <Content />
+      </div>
+
+      <Faq locale={locale} faqs={data.faqs} level={3} />
+
+      <p class="article__updated">
+        {t('label.updated')}: <time datetime={data.updated.toISOString()}>
+          {formatDate(data.updated, locale)}
+        </time>
+      </p>
+
+      {
+        related.length > 0 && (
+          <nav class="article__related" aria-label={t('label.related')}>
+            <h2>{t('label.related')}</h2>
+            <ul>
+              {related.map((other) => (
+                <li>
+                  <a href={localePath(locale, `guide/${parseId(other.id).slug}`)}>
+                    {other.data.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
+    </article>
+
+    <aside class="article__aside">
+      <Toc locale={locale} headings={headings} />
+    </aside>
+  </div>
+
+  <ContactCta locale={locale} />
+</Base>
+
+<style>
+  .article {
+    display: grid;
+    gap: var(--space-xl);
+    padding-block: var(--space-xl) var(--section-gap);
+    align-items: start;
+  }
+
+  .article__main > * + * {
+    margin-top: var(--space-l);
+  }
+
+  .article__updated {
+    font-size: var(--step--1);
+    color: var(--text-faint);
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--border);
+  }
+
+  .article__related h2 {
+    font-size: var(--step-2);
+    margin-bottom: var(--space-xs);
+  }
+
+  .article__related ul {
+    display: grid;
+    gap: var(--space-2xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .article__related a {
+    font-weight: 500;
+  }
+
+  @media (min-width: 64rem) {
+    .article {
+      grid-template-columns: minmax(0, 1fr) 15rem;
+      gap: var(--space-2xl);
+    }
+
+    .article__aside {
+      position: sticky;
+      top: calc(var(--header-h) + var(--space-m));
+      order: 2;
+    }
+  }
+</style>

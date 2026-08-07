@@ -1,0 +1,26 @@
+{
+  "name": "bluepeaks-mallorca",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Blue Peaks Mallorca — guided hiking in the Serra de Tramuntana",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "fonts": "node scripts/fetch-fonts.mjs",
+    "assets": "node scripts/make-assets.mjs",
+    "shots": "node scripts/screenshot.mjs"
+  },
+  "dependencies": {
+    "astro": "^7.2.0",
+    "sharp": "^0.35.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "playwright": "^1.62.1",
+    "typescript": "^6.0.3"
+  }
+}
