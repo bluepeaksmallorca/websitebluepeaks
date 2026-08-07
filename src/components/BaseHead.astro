@@ -126,17 +126,25 @@ const fullTitle = title.includes(site.shortName) ? title : `${title} — ${site.
 <meta name="theme-color" content="#1a4054" />
 
 {/*
-  The two latin subsets are on the critical path for every page; preloading
-  them removes a render-blocking round trip on mobile.
+  Only the two faces on the critical path of a first paint are preloaded:
+  Poppins regular for the body and nav, and Poppins semibold for the headings.
+  The serif is below the fold on every page, and the latin-ext subsets only
+  load for the languages that need them.
 */}
 <link
   rel="preload"
-  href="/fonts/fraunces-latin.woff2"
+  href="/fonts/poppins-latin-400-normal.woff2"
   as="font"
   type="font/woff2"
   crossorigin
 />
-<link rel="preload" href="/fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin />
+<link
+  rel="preload"
+  href="/fonts/poppins-latin-600-normal.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
 
 <link rel="sitemap" href="/sitemap.xml" />
 

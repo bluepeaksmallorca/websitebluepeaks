@@ -65,6 +65,7 @@ faqs:
       Mallorcan food, and drinking water. Opening is seasonal and it closes on
       some weekdays in winter, so carry at least 1.5 litres of water per person
       regardless.
+draft: true
 ---
 
 Castell d'Alaró sits on a limestone bluff at 822 metres, above the village of Alaró on the southern edge of the Serra de Tramuntana. The first written record of the castle dates from 902, and it held out against a siege for two years after the Catalan conquest of 1229 — which is roughly how long it takes to appreciate the position once you are standing on it. On a clear day you can see the whole central plain of the island, the bay of Palma, and the ridgeline running north towards Puig Major.

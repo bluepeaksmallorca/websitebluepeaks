@@ -1,8 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { site, DEFAULT_LOCALE } from '../data/site';
-import { parseId, byDifficulty } from '../lib/content';
-import { hikeToMarkdown, articleToMarkdown } from '../lib/mirror';
+import { parseId } from '../lib/content';
+import { articleToMarkdown } from '../lib/mirror';
 import { absoluteUrl } from '../i18n/utils';
 
 /**
@@ -19,9 +19,7 @@ export const GET: APIRoute = async () => {
   const english = <T extends { id: string; data: { draft?: boolean } }>(entries: T[]) =>
     entries.filter((e) => parseId(e.id).locale === DEFAULT_LOCALE && !e.data.draft);
 
-  const [hikes, guidePages, pages, posts] = await Promise.all([
-    getCollection('hikes').then(english),
-    getCollection('guide').then(english),
+  const [pages, posts] = await Promise.all([
     getCollection('pages').then(english),
     getCollection('blog').then(english),
   ]);
@@ -43,15 +41,6 @@ export const GET: APIRoute = async () => {
   for (const page of pages) {
     const slug = parseId(page.id).slug;
     parts.push(separator, articleToMarkdown(page, absoluteUrl(`/${slug}/`)));
-  }
-
-  for (const hike of hikes.sort(byDifficulty)) {
-    parts.push(separator, hikeToMarkdown(hike, parseId(hike.id).slug));
-  }
-
-  for (const guide of guidePages.sort((a, b) => a.data.order - b.data.order)) {
-    const slug = parseId(guide.id).slug;
-    parts.push(separator, articleToMarkdown(guide, absoluteUrl(`/guide/${slug}/`)));
   }
 
   for (const post of posts.sort((a, b) => b.data.published.getTime() - a.data.published.getTime())) {

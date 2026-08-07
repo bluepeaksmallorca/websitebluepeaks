@@ -158,6 +158,8 @@ const pages = defineCollection({
         .array(z.object({ title: z.string(), body: z.string() }))
         .default([]),
       faqs: faqSchema,
+      /** Renders the Bokun booking widget for this product on the page. */
+      bokunProduct: z.enum(['privateHikes', 'customHikes', 'scheduledHikes']).optional(),
       /** Suppresses the standard closing enquiry block (used by the legal page). */
       hideCta: z.boolean().default(false),
       noindex: z.boolean().default(false),

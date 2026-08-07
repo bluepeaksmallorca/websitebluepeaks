@@ -68,6 +68,7 @@ faqs:
       cliff top, so it works at sunset in particular. That means finishing in
       the dark, which is fine with head torches and someone who knows the
       descent.
+draft: true
 ---
 
 Most walking paths in the Serra de Tramuntana were built for a reason — moving olives, charcoal, snow, or people who had to be somewhere. The Camí de s'Arxiduc is one of the few built purely so that someone could look at the view.

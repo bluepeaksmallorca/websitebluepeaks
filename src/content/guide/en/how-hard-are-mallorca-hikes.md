@@ -50,6 +50,7 @@ faqs:
       both. A route with 900 m of ascent is a hard day regardless of how few
       kilometres it covers. If you can walk uphill for two continuous hours
       without it becoming grim, most moderate Tramuntana routes are open to you.
+draft: true
 ---
 
 "Is it hard?" is the question we get most, and the honest answer is that it depends on things the numbers do not show.

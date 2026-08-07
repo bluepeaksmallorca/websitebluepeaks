@@ -39,7 +39,7 @@ export const site = {
   url: SITE_URL,
 
   tagline: {
-    en: 'Guided hiking in the Serra de Tramuntana',
+    en: 'Tailored hiking days with mindful experiences',
     de: 'Geführte Wanderungen in der Serra de Tramuntana',
     es: 'Senderismo guiado en la Serra de Tramuntana',
     ca: 'Excursions guiades a la Serra de Tramuntana',
@@ -93,8 +93,8 @@ export const site = {
     'Balearic Islands',
   ],
 
-  /** TODO: confirm. Drives the "languages spoken" line and schema knowsLanguage. */
-  languagesSpoken: ['English', 'Spanish', 'Catalan', 'German', 'Croatian'],
+  /** Read off the LANGUAGES row on the live site. Drives schema knowsLanguage. */
+  languagesSpoken: ['English', 'Spanish', 'Catalan', 'Dutch'],
 
   pricing: {
     currency: 'EUR',
@@ -150,13 +150,24 @@ export const guides = [
 ] as const;
 
 /**
- * Booking is handled by Bokun today. Point these at the real product URLs and
- * every "Book" button on the site follows.
- * TODO: replace with your Bokun experience URLs.
+ * Bokun booking configuration.
+ *
+ * Fill these in from your Bokun account and the three service pages switch
+ * from the WhatsApp enquiry card to a real online booking widget. Until then
+ * every page still works — see src/components/BokunWidget.astro.
+ *
+ * Where to find them in Bokun:
+ *   bookingChannelUUID — Sales tools -> Booking channels -> your channel
+ *   product ids        — the number in a product's URL, e.g. .../experience/123456
+ *
+ * NOTE: turning this on adds third-party JavaScript and cookies. See the
+ * commented block in public/_headers for the CSP entries it needs, and update
+ * the privacy section of src/content/pages/en/legal.md.
  */
 export const booking = {
   provider: 'bokun',
-  /** Set to null to fall back to the WhatsApp/email enquiry flow. */
+  bookingChannelUUID: null as string | null,
+  /** Set to null to keep a page on the WhatsApp/email enquiry flow. */
   privateHikes: null as string | null,
   customHikes: null as string | null,
   scheduledHikes: null as string | null,

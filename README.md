@@ -3,7 +3,12 @@
 The Blue Peaks Mallorca website. Static site built with [Astro](https://astro.build),
 hosted free on Cloudflare Pages.
 
-Six languages, no database, no cookies, no third-party requests.
+Six languages, no database, no cookies, and no third-party requests until
+someone taps the map.
+
+Brand colours and fonts follow the existing WordPress site: the palette was
+sampled pixel-by-pixel from screenshots of the live pages, so this is the same
+brand rather than an interpretation of it.
 
 ---
 
@@ -13,12 +18,15 @@ These need doing. Nothing else blocks launch.
 
 | What | Where | Why |
 | --- | --- | --- |
-| **Check every business fact** | `src/data/site.ts` | Address, phone, price, group size, languages and founding year all feed the visible pages *and* the structured data. Values marked `TODO` were inferred from public listings, not confirmed. |
-| **Fill in the legal notice** | `src/content/pages/en/legal.md` | Spanish law (LSSI-CE art. 10) requires a business site to publish its legal name, NIF/CIF and registered address. The file has `TODO` markers where those go. |
-| **Add the WordPress redirect map** | `public/_redirects` | Every URL that currently ranks needs a 301, or the move costs you the search equity the old site built. See that file for how to get the list. |
-| **Add real photographs** | see [Images](#images) | The site currently draws generated ridgelines wherever a photo is missing. They look deliberate, but they are not photographs of Mallorca. |
-| **Check the route numbers** | `src/content/hikes/en/*.md` | Distances, ascent and walking times were written from knowledge of these routes, not from your GPS tracks. Correct them against your own data before publishing — the whole point of these pages is that the numbers are trustworthy. |
-| **Point the booking links at Bokun** | `src/data/site.ts` → `booking` | Currently `null`, which routes everyone through the WhatsApp/email enquiry flow. |
+| **Confirm the two typefaces** | `scripts/fetch-fonts.mjs`, `src/styles/tokens.css` | Built with **Poppins** (UI) and **Cormorant Garamond** (blog), read off the letterforms in your screenshots. If Elementor says otherwise, change the two families in the fetch script, re-run `npm run fonts`, and update `--font-sans` / `--font-serif`. Nothing else needs touching. |
+| **Supply the hero video** | `public/video/` | Add `hero.mp4` (and ideally `hero.webm`) plus a real `hero-poster.jpg`, then set `video="/video/hero"` on the `<VideoHero>` in `src/pages/[...locale]/index.astro`. Until then the poster placeholder shows. |
+| **Send the original logo vector** | `src/components/Logo.astro` | The mark is currently hand-traced from a screenshot. It is close, but it is not your artwork. |
+| **Write the real FAQ answers** | `src/data/pages/home.ts` | Questions are verbatim from your site; the answers are drafts. **Cancellations** and **travel insurance** are marked `TODO` and must be replaced — those state policy, and policy is not something to infer. |
+| **Fill in the Bokun IDs** | `src/data/site.ts` → `booking` | `/private-hikes/`, `/custom-hikes/` and `/hikes/` show a WhatsApp enquiry card until the booking channel UUID and product ids are set. See the note there and the commented CSP block in `public/_headers`. |
+| **Check the business facts** | `src/data/site.ts` | Address, price, max group size and founding year feed both the visible copy and the structured data. Values marked `TODO` were inferred from public listings. |
+| **Complete the legal notice** | `src/content/pages/en/legal.md` | Spanish law (LSSI-CE art. 10) requires legal name, NIF/CIF and registered address. |
+| **Add the WordPress redirect map** | `public/_redirects` | Every URL that currently ranks needs a 301. See that file for how to get the list. |
+| **Add photographs** | see [Images](#images) | The four homepage images and the CTA banner are generated stand-ins. |
 
 ---
 
@@ -80,13 +88,14 @@ Cloudflare Pages' free tier covers this site comfortably: unlimited bandwidth,
 ```
 src/
 ├─ content/            the actual writing — Markdown, one folder per language
-│  ├─ hikes/en/        route guides (distance, ascent, FAQs, prose)
-│  ├─ guide/en/        practical reference pages (season, packing, difficulty)
+│  ├─ pages/en/        private-hikes, custom-hikes, hikes, legal
 │  ├─ blog/en/         journal posts
-│  └─ pages/en/        about, private-hikes, custom-hikes, legal
+│  ├─ hikes/en/        route guides — all draft: true, not built
+│  └─ guide/en/        practical guides — all draft: true, not built
 ├─ data/
 │  ├─ site.ts          ⭐ every business fact, in one place
-│  └─ pages/           home + index page copy, translated into all six languages
+│  └─ pages/home.ts    ⭐ homepage copy and the FAQ answers
+├─ styles/tokens.css   ⭐ the sampled brand palette
 ├─ i18n/               UI strings and locale helpers
 ├─ components/         Astro components
 ├─ layouts/Base.astro  page shell
@@ -99,40 +108,53 @@ src/
 Everything a visitor reads is either in `src/content/` (Markdown) or
 `src/data/pages/` (page copy). You do not need to touch anything else.
 
-**To add a hiking route**, copy an existing file in `src/content/hikes/en/`,
-change the front matter and the prose, and push. It appears on the index page,
-in `llms.txt`, in the sitemap, and gets its own `.md` mirror automatically.
+**To change homepage text or an FAQ answer**, edit `src/data/pages/home.ts`.
 
-**To add a blog post**, drop a Markdown file in `src/content/blog/en/`.
+**To add a blog post**, drop a Markdown file in `src/content/blog/en/`. It
+appears on the homepage and the blog index, in `llms.txt`, in the sitemap, and
+gets its own `.md` mirror automatically.
 
 Set `draft: true` in the front matter to keep something out of the build while
 you work on it.
 
+### Pages
+
+The site mirrors what is live today, nothing more:
+
+| Route | What it is |
+| --- | --- |
+| `/` | The long homepage: video hero, strapline, photo collage, welcome, languages, services, mantra, WhatsApp banner, blog teasers, FAQs, partners |
+| `/private-hikes/` `/custom-hikes/` `/hikes/` | The three service pages, each ready for its Bokun widget |
+| `/blog/` and `/blog/<post>/` | Journal index and posts |
+| `/legal/` | Legal notice and privacy |
+
+The seven route guides and four practical guides written in the first pass are
+still in `src/content/hikes/` and `src/content/guide/` with `draft: true`. They
+do not build and appear nowhere. Set `draft: false` — and restore a page
+template for them — if you ever want them.
+
 ### Languages
 
-English is the source. The site ships in **English, German, Spanish, Catalan,
-Dutch and French**.
+English is the source. The chrome (navigation, buttons, footer) is translated
+into all six languages; the homepage copy and the page content are English
+only for now.
 
-- **Fully translated:** all navigation and buttons, the home page, the three
-  index pages, and the contact page.
-- **English with a visible notice:** the route guides, practical guides, blog
-  posts and the about/service pages.
-
-Untranslated pages still exist at their localised URL — `/de/about/` works —
-but they show the English text with a short line explaining why, canonicalise
-to the English page, and are left out of hreflang and the sitemap until a real
+Untranslated pages still exist at their localised URL — `/de/private-hikes/`
+works — but show the English text with a short notice, canonicalise to the
+English page, and stay out of hreflang and the sitemap until a real
 translation exists. That avoids six URLs of duplicate content.
 
-**To translate a page**, copy the English Markdown file into the matching
-locale folder, keeping the filename identical:
+**To translate a page**, copy the English Markdown into the matching locale
+folder with the same filename:
 
 ```
-src/content/hikes/en/castell-dalaro.md
-src/content/hikes/de/castell-dalaro.md   ← add this, set locale: de
+src/content/pages/en/private-hikes.md
+src/content/pages/de/private-hikes.md   ← add this, set locale: de
 ```
 
-The notice disappears, hreflang picks it up, and it enters the sitemap. No code
-change.
+For the homepage, fill in a locale in `byLocale` in `src/data/pages/home.ts`.
+The notice disappears, hreflang picks it up, and it enters the sitemap. No
+code change.
 
 ---
 
@@ -214,11 +236,17 @@ cited — the citations still have to be earned.
 
 ## Privacy and performance
 
-No analytics, no cookies, no embedded widgets, no external fonts. The fonts are
-served from this domain (`scripts/fetch-fonts.mjs` downloads them; re-run it
-only if you change the typefaces). That means a page load makes **zero
-third-party requests**, which is both fast and the simplest possible GDPR
-position for an EU business.
+No analytics, no cookies, no external fonts. The fonts are served from this
+domain (`scripts/fetch-fonts.mjs` downloads them; re-run with `npm run fonts`
+if you change the typefaces). A page load makes **zero third-party requests** —
+which is fast, and the simplest possible GDPR position for an EU business.
+
+Two things would change that, both deliberate:
+
+- **The footer map** is click-to-load. A Google Maps iframe sets cookies on
+  every page view; nothing loads until someone taps it.
+- **Bokun**, once configured, is third-party JavaScript and does set cookies.
+  When you turn it on, update the privacy section of the legal page to say so.
 
 If you later want visitor numbers, Cloudflare Web Analytics is free, needs no
 cookie banner, and is one line in `src/components/BaseHead.astro`.

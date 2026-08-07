@@ -48,6 +48,7 @@ faqs:
       main seasons, weekdays in March and November are quiet. The popular
       honeypots — Castell d'Alaró, Sa Calobra, the Sóller valley — are busy on
       any weekend, year-round.
+draft: true
 ---
 
 Mallorca has a longer hiking season than most of Europe and a shorter one than its climate suggests. The island is walkable for roughly nine months of the year, but the two months at the centre of the tourist season are the two worst months to be climbing anything.

@@ -3,9 +3,8 @@ import type { GetStaticPaths } from 'astro';
 
 import Base from '../../../layouts/Base.astro';
 import PageHeader from '../../../components/PageHeader.astro';
-import ContactCta from '../../../components/ContactCta.astro';
-import Placeholder from '../../../components/Placeholder.astro';
-import { Image } from 'astro:assets';
+import CtaBanner from '../../../components/CtaBanner.astro';
+import PostCard from '../../../components/PostCard.astro';
 
 import type { Locale } from '../../../data/site';
 import { blogIndex } from '../../../data/pages/listings';
@@ -69,61 +68,35 @@ const jsonLd = buildGraph(locale, [
           <p class="muted">Nothing published yet.</p>
         ) : (
           <div class="grid" style="--min: 19rem">
-            {posts.map((post, index) => {
-              const slug = parseId(post.id).slug;
-              return (
-                <article class="card">
-                  <div class="card__media">
-                    {post.data.heroImage ? (
-                      <Image
-                        src={post.data.heroImage}
-                        alt={post.data.heroAlt}
-                        widths={[320, 480, 640, 800]}
-                        sizes="(min-width: 64rem) 22rem, (min-width: 40rem) 45vw, 92vw"
-                        loading={index < 3 ? 'eager' : 'lazy'}
-                      />
-                    ) : (
-                      <Placeholder seed={slug} />
-                    )}
-                  </div>
-                  <div class="card__body">
-                    <h2 class="card__title">
-                      <a href={localePath(locale, `blog/${slug}`)}>{post.data.title}</a>
-                    </h2>
-                    <p class="blog-card__summary">{post.data.summary}</p>
-                    <p class="card__meta">
-                      <time datetime={post.data.published.toISOString()}>
-                        {formatDate(post.data.published, locale)}
-                      </time>
-                      <span>
-                        {t('label.by')} {post.data.author}
-                      </span>
-                    </p>
-                  </div>
-                </article>
-              );
-            })}
+            {posts.map((post) => (
+              <PostCard
+                locale={locale}
+                slug={parseId(post.id).slug}
+                title={post.data.title}
+                summary={post.data.summary}
+                published={post.data.published}
+                author={post.data.author}
+                level={2}
+              />
+            ))}
           </div>
         )
       }
     </div>
   </section>
 
-  <ContactCta locale={locale} />
+  <CtaBanner locale={locale} />
 </Base>
 
 <style>
   .blog-intro {
     max-width: var(--measure);
+    margin-inline: auto;
+    text-align: center;
     margin-bottom: var(--space-xl);
     font-size: var(--step-1);
     line-height: var(--leading-snug);
     color: var(--text-muted);
   }
 
-  .blog-card__summary {
-    color: var(--text-muted);
-    font-size: var(--step--1);
-    line-height: var(--leading-normal);
-  }
 </style>

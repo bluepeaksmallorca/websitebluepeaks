@@ -1,5 +1,5 @@
 ---
-import type { Locale } from '../data/site';
+import { site, type Locale } from '../data/site';
 import { localePath, useTranslations } from '../i18n/utils';
 import LanguageSwitcher from './LanguageSwitcher.astro';
 import Logo from './Logo.astro';
@@ -7,30 +7,31 @@ import Logo from './Logo.astro';
 interface Props {
   locale: Locale;
   routeKey: string;
+  /** True on the homepage, where the header floats over the video hero. */
+  overHero?: boolean;
 }
 
-const { locale, routeKey } = Astro.props;
+const { locale, routeKey, overHero = false } = Astro.props;
 const t = useTranslations(locale);
 
 const links = [
   { key: 'nav.hikes', path: 'hikes' },
   { key: 'nav.private', path: 'private-hikes' },
   { key: 'nav.custom', path: 'custom-hikes' },
-  { key: 'nav.guide', path: 'guide' },
   { key: 'nav.blog', path: 'blog' },
-  { key: 'nav.about', path: 'about' },
 ] as const;
 
-const isCurrent = (path: string) =>
-  routeKey === path || routeKey.startsWith(`${path}/`);
+const isCurrent = (path: string) => routeKey === path || routeKey.startsWith(`${path}/`);
+
+const whatsapp = `https://wa.me/${site.contact.whatsapp}`;
 ---
 
 <a class="skip-link" href="#main">{t('nav.skip')}</a>
 
-<header class="site-header" data-header>
+<header class:list={['site-header', { 'site-header--over': overHero }]} data-header>
   <div class="wrap wrap--wide site-header__inner">
-    <a href={localePath(locale)} class="site-header__brand" aria-label="Blue Peaks Mallorca">
-      <Logo />
+    <a href={localePath(locale)} class="site-header__brand" aria-label={site.name}>
+      <Logo layout="inline" />
     </a>
 
     <nav class="site-nav" aria-label="Main">
@@ -53,8 +54,9 @@ const isCurrent = (path: string) =>
 
     <div class="site-header__actions">
       <LanguageSwitcher locale={locale} routeKey={routeKey} id="lang-desktop" />
-      <a href={localePath(locale, 'contact')} class="btn btn--primary site-header__cta">
-        {t('cta.enquire')}
+
+      <a class="btn btn--teal site-header__cta" href={whatsapp} rel="noopener" target="_blank">
+        WhatsApp
       </a>
 
       <button
@@ -88,15 +90,12 @@ const isCurrent = (path: string) =>
             </li>
           ))
         }
-        <li>
-          <a href={localePath(locale, 'contact')} class="nav-panel__link">{t('nav.contact')}</a>
-        </li>
       </ul>
 
       <div class="nav-panel__footer">
         <LanguageSwitcher locale={locale} routeKey={routeKey} id="lang-mobile" />
-        <a href={localePath(locale, 'contact')} class="btn btn--primary btn--block">
-          {t('cta.enquire')}
+        <a class="btn btn--teal btn--block" href={whatsapp} rel="noopener" target="_blank">
+          {t('cta.whatsapp')}
         </a>
       </div>
     </nav>
@@ -108,15 +107,43 @@ const isCurrent = (path: string) =>
     position: sticky;
     top: 0;
     z-index: 100;
-    background: color-mix(in srgb, var(--bg) 88%, transparent);
-    backdrop-filter: blur(12px) saturate(1.4);
+    background: color-mix(in srgb, var(--greige) 90%, transparent);
+    backdrop-filter: blur(10px) saturate(1.2);
     border-bottom: 1px solid transparent;
-    transition: border-color var(--duration) var(--ease-out);
+    transition:
+      background-color var(--duration) var(--ease-out),
+      border-color var(--duration) var(--ease-out),
+      color var(--duration) var(--ease-out);
   }
 
-  /* The border only appears once the page has scrolled, so the hero sits flush. */
   .site-header[data-scrolled] {
     border-bottom-color: var(--border);
+  }
+
+  /*
+    Over the video hero the header is invisible until you scroll, so the
+    lockup on the video is the first thing you see rather than a nav bar.
+  */
+  .site-header--over:not([data-scrolled]) {
+    background: transparent;
+    backdrop-filter: none;
+    color: #fff;
+  }
+
+  .site-header--over:not([data-scrolled]) :is(.site-nav__link, .nav-toggle) {
+    color: #fff;
+  }
+
+  .site-header--over:not([data-scrolled]) :global(.logo) {
+    color: #fff;
+  }
+
+  .site-header--over:not([data-scrolled]) .site-nav__link:not(.is-current) {
+    color: rgb(255 255 255 / 0.88);
+  }
+
+  .site-header--over:not([data-scrolled]) .site-nav__link::after {
+    background: #fff;
   }
 
   .site-header__inner {
@@ -131,7 +158,7 @@ const isCurrent = (path: string) =>
     display: flex;
     align-items: center;
     flex-shrink: 0;
-    color: var(--ink-900);
+    color: inherit;
     text-decoration: none;
   }
 
@@ -141,8 +168,6 @@ const isCurrent = (path: string) =>
     gap: var(--space-3xs);
   }
 
-  /* ---- Desktop nav ---- */
-
   .site-nav {
     display: none;
   }
@@ -150,7 +175,7 @@ const isCurrent = (path: string) =>
   .site-nav__list {
     display: flex;
     align-items: center;
-    gap: clamp(0.5rem, 0.1rem + 0.9vw, 1.4rem);
+    gap: clamp(0.75rem, 0.2rem + 1.2vw, 1.75rem);
     margin: 0;
     padding: 0;
     list-style: none;
@@ -162,7 +187,7 @@ const isCurrent = (path: string) =>
     padding: 0.5rem 0;
     font-size: var(--step--1);
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--charcoal-soft);
     text-decoration: none;
     white-space: nowrap;
   }
@@ -174,15 +199,16 @@ const isCurrent = (path: string) =>
     right: 0;
     bottom: 0.1rem;
     height: 2px;
-    background: var(--primary);
+    background: var(--olive);
     border-radius: 2px;
     transform: scaleX(0);
     transform-origin: left;
     transition: transform var(--duration) var(--ease-out);
   }
 
-  .site-nav__link:hover {
-    color: var(--text);
+  .site-nav__link:hover,
+  .site-nav__link.is-current {
+    color: var(--charcoal);
   }
 
   .site-nav__link:hover::after,
@@ -190,15 +216,9 @@ const isCurrent = (path: string) =>
     transform: scaleX(1);
   }
 
-  .site-nav__link.is-current {
-    color: var(--primary);
-  }
-
   .site-header__cta {
     display: none;
   }
-
-  /* ---- Mobile toggle ---- */
 
   .nav-toggle {
     display: inline-flex;
@@ -207,11 +227,7 @@ const isCurrent = (path: string) =>
     width: 2.75rem;
     height: 2.75rem;
     border-radius: var(--radius-s);
-    color: var(--ink-900);
-  }
-
-  .nav-toggle:hover {
-    background: var(--bg-sunken);
+    color: var(--charcoal);
   }
 
   .nav-toggle__bars {
@@ -253,11 +269,9 @@ const isCurrent = (path: string) =>
     transform: translateY(-6px) rotate(-45deg);
   }
 
-  /* ---- Mobile panel ---- */
-
   .nav-panel {
     border-top: 1px solid var(--border);
-    background: var(--bg);
+    background: var(--greige);
     max-height: calc(100svh - var(--header-h));
     overflow-y: auto;
     padding-block: var(--space-s) var(--space-m);
@@ -275,16 +289,16 @@ const isCurrent = (path: string) =>
 
   .nav-panel__link {
     display: block;
-    padding: 0.85rem 0;
-    font-family: var(--font-display);
+    padding: 0.9rem 0;
     font-size: var(--step-2);
-    color: var(--ink-800);
+    font-weight: 500;
+    color: var(--charcoal);
     text-decoration: none;
     border-bottom: 1px solid var(--border);
   }
 
   .nav-panel__link.is-current {
-    color: var(--primary);
+    color: var(--olive);
   }
 
   .nav-panel__footer {
@@ -294,7 +308,6 @@ const isCurrent = (path: string) =>
     margin-top: var(--space-m);
   }
 
-  /* Hide the desktop language switcher until there is room for it. */
   .site-header__actions :global(#lang-desktop) {
     display: none;
   }
@@ -315,23 +328,21 @@ const isCurrent = (path: string) =>
     .site-header__cta {
       display: inline-flex;
       min-height: 2.6rem;
-      padding: 0.5rem 1.15rem;
+      padding: 0.55rem 1.2rem;
       font-size: var(--step--1);
-    }
-
-    .site-header__actions :global(#lang-desktop) {
-      display: block;
     }
 
     .site-header__actions {
       gap: var(--space-2xs);
     }
+
+    .site-header__actions :global(#lang-desktop) {
+      display: block;
+    }
   }
 </style>
 
 <script>
-  // Progressive enhancement: without JS the panel stays hidden and the desktop
-  // nav (or the footer sitemap) still gives access to every page.
   const toggle = document.querySelector<HTMLButtonElement>('[data-nav-toggle]');
   const panel = document.querySelector<HTMLElement>('[data-nav-panel]');
   const header = document.querySelector<HTMLElement>('[data-header]');
@@ -340,8 +351,9 @@ const isCurrent = (path: string) =>
     const setOpen = (open: boolean) => {
       toggle.setAttribute('aria-expanded', String(open));
       panel.hidden = !open;
-      // Stop the page behind the menu from scrolling on iOS.
       document.documentElement.style.overflow = open ? 'hidden' : '';
+      // An open panel needs its own solid ground even over the hero.
+      header?.toggleAttribute('data-scrolled', open || window.scrollY > 8);
     };
 
     toggle.addEventListener('click', () => {
@@ -355,17 +367,15 @@ const isCurrent = (path: string) =>
       }
     });
 
-    // Reset when the viewport grows past the breakpoint, so the desktop nav is
-    // never left with a stale open panel and a locked <html>.
-    const wide = window.matchMedia('(min-width: 64rem)');
-    wide.addEventListener('change', (event) => {
+    window.matchMedia('(min-width: 64rem)').addEventListener('change', (event) => {
       if (event.matches) setOpen(false);
     });
   }
 
   if (header) {
     const onScroll = () => {
-      header.toggleAttribute('data-scrolled', window.scrollY > 8);
+      const menuOpen = toggle?.getAttribute('aria-expanded') === 'true';
+      header.toggleAttribute('data-scrolled', menuOpen || window.scrollY > 8);
     };
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });

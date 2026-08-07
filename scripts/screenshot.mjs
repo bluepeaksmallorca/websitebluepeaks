@@ -13,13 +13,10 @@ const OUT = process.env.OUT_DIR ?? '/tmp/shots';
 
 const pages = [
   ['home', '/'],
-  ['hikes', '/hikes/'],
-  ['hike', '/hikes/barranc-de-biniaraix/'],
-  ['guide', '/guide/best-time-to-hike-mallorca/'],
+  ['home-mid', '/#services'],
   ['private', '/private-hikes/'],
-  ['contact', '/contact/'],
   ['blog', '/blog/'],
-  ['de-home', '/de/'],
+  ['post', '/blog/four-seasons-in-the-tramuntana/'],
 ];
 
 const viewports = [
@@ -46,13 +43,13 @@ for (const [vpName, viewport, scale] of viewports) {
 
   for (const [name, path] of pages) {
     // Desktop only needs the marketing pages; skip the duplicates.
-    if (vpName === 'desktop' && ['de-home'].includes(name)) continue;
+    
 
     await page.goto(BASE + path, { waitUntil: 'networkidle' });
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({
       path: `${OUT}/${vpName}-${name}.png`,
-      fullPage: scale > 2 ? false : false,
+      fullPage: name === 'home-mid',
     });
   }
 

@@ -73,6 +73,7 @@ faqs:
       year some require a short swim. Everything you carry needs to be in a dry
       bag. The route finishes at the beach at Sa Calobra, where the swim is the
       good kind.
+draft: true
 ---
 
 The Torrent de Pareis is not a walk. It is a descent through a limestone canyon that in places is two hundred metres deep and only a few metres wide, and it is done by climbing over, under and between boulders the size of small buildings for most of a day.

@@ -33,13 +33,10 @@ interface Entry {
   priority: number;
 }
 
-/** Pages built from `src/data/pages/*` exist in all six languages. */
+/** Routes not backed by a content collection. */
 const FULLY_TRANSLATED: Array<{ routeKey: string; priority: number }> = [
   { routeKey: '', priority: 1.0 },
-  { routeKey: 'hikes', priority: 0.9 },
-  { routeKey: 'guide', priority: 0.8 },
-  { routeKey: 'blog', priority: 0.6 },
-  { routeKey: 'contact', priority: 0.7 },
+  { routeKey: 'blog', priority: 0.7 },
 ];
 
 const escape = (value: string) =>
@@ -48,17 +45,17 @@ const escape = (value: string) =>
 export const GET: APIRoute = async () => {
   const entries: Entry[] = [];
 
+  // Only English copy exists for these today, so only English is submitted.
+  // Add a locale to `byLocale` in src/data/pages/home.ts and it appears here.
   for (const page of FULLY_TRANSLATED) {
-    entries.push({ routeKey: page.routeKey, locales: [...LOCALES], priority: page.priority });
+    entries.push({ routeKey: page.routeKey, locales: [DEFAULT_LOCALE], priority: page.priority });
   }
 
   // Collection-backed routes: one entry per slug, listing only the locales that
   // have a translation file for it.
   const collections = [
-    { name: 'hikes' as const, prefix: 'hikes/', priority: 0.8 },
-    { name: 'guide' as const, prefix: 'guide/', priority: 0.7 },
-    { name: 'blog' as const, prefix: 'blog/', priority: 0.5 },
-    { name: 'pages' as const, prefix: '', priority: 0.7 },
+    { name: 'pages' as const, prefix: '', priority: 0.9 },
+    { name: 'blog' as const, prefix: 'blog/', priority: 0.6 },
   ];
 
   for (const collection of collections) {

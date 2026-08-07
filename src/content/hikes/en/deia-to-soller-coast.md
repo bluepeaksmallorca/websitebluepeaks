@@ -67,6 +67,7 @@ faqs:
       Yes, for children of roughly eight and up who are used to walking. There
       is no exposure and the ground is manageable. The swim at Cala Deià
       halfway is usually what makes it work for younger walkers.
+draft: true
 ---
 
 This is the route we suggest for a first day, for mixed groups, and for anyone who wants the Tramuntana without the suffering. It runs along the north-west coast between two of the best-known villages on the island, mostly through olive terraces and pine woods, and it finishes at a harbour where you can swim and get a boat.

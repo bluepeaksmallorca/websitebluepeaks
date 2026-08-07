@@ -22,15 +22,15 @@ interface Props {
   markdownUrl?: string;
   /** True when this locale has no translation and English is being shown. */
   isFallback?: boolean;
-  /** Lets the hero sit flush under the transparent header. */
-  flushHero?: boolean;
+  /** Homepage only: the header floats transparently over the video hero. */
+  overHero?: boolean;
 }
 
 const {
   locale,
   routeKey,
   availableLocales = LOCALES,
-  flushHero = false,
+  overHero = false,
   ...head
 } = Astro.props;
 ---
@@ -47,9 +47,9 @@ const {
   </head>
 
   <body>
-    <Header locale={locale} routeKey={routeKey} />
+    <Header locale={locale} routeKey={routeKey} overHero={overHero} />
 
-    <main id="main" class:list={[{ 'main--flush': flushHero }]}>
+    <main id="main" class:list={[{ 'main--over': overHero }]}>
       <slot />
     </main>
 
@@ -63,10 +63,10 @@ const {
   }
 
   /*
-    Pages with a full-bleed hero pull it up behind the sticky header; every
-    other page just starts below it.
+    The video hero runs up behind the sticky header; every other page starts
+    below it.
   */
-  .main--flush {
+  .main--over {
     margin-top: calc(var(--header-h) * -1);
   }
 </style>

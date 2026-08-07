@@ -1,0 +1,137 @@
+---
+import type { Locale } from '../data/site';
+import { localePath, useTranslations, formatDate } from '../i18n/utils';
+
+/**
+ * Blog card: serif title, serif excerpt, teal "READ MORE »", and a rule above
+ * the date — the same shape as the cards on the live site.
+ */
+interface Props {
+  locale: Locale;
+  slug: string;
+  title: string;
+  summary: string;
+  published: Date;
+  author?: string;
+  /** h2 on the blog index, h3 inside the homepage section. */
+  level?: 2 | 3;
+}
+
+const { locale, slug, title, summary, published, author, level = 3 } = Astro.props;
+const t = useTranslations(locale);
+const Heading = `h${level}` as 'h2' | 'h3';
+const href = localePath(locale, `blog/${slug}`);
+---
+
+<article class="post-card">
+  <Heading class="post-card__title">
+    <a href={href}>{title}</a>
+  </Heading>
+
+  <p class="post-card__excerpt">{summary}</p>
+
+  <p class="post-card__more">
+    <a href={href} tabindex="-1" aria-hidden="true">{t('cta.readMore')} »</a>
+  </p>
+
+  <p class="post-card__meta">
+    <time datetime={published.toISOString()}>{formatDate(published, locale)}</time>
+    {author && <span>· {t('label.by')} {author}</span>}
+  </p>
+</article>
+
+<style>
+  .post-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-l);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    box-shadow: var(--shadow-s);
+    transition:
+      transform var(--duration) var(--ease-out),
+      box-shadow var(--duration) var(--ease-out);
+  }
+
+  @media (hover: hover) {
+    .post-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-m);
+    }
+  }
+
+  .post-card__title {
+    font-family: var(--font-serif);
+    font-size: var(--step-3);
+    font-weight: 500;
+    line-height: var(--leading-snug);
+    letter-spacing: 0;
+    color: var(--olive);
+  }
+
+  .post-card__title a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /*
+    The whole card is clickable, but only the title is a real link, so the
+    status bar and screen readers announce one sensible target. The duplicate
+    "READ MORE" link below is hidden from assistive tech for the same reason.
+  */
+  .post-card__title a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+
+  .post-card:hover .post-card__title a {
+    text-decoration: underline;
+    text-underline-offset: 0.15em;
+  }
+
+  .post-card__excerpt {
+    margin-top: var(--space-m);
+    font-family: var(--font-serif);
+    font-size: var(--step-1);
+    line-height: var(--leading-relaxed);
+    color: var(--grey);
+    /* Keeps every card in a row the same height without fixing a height. */
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .post-card__more {
+    margin-top: var(--space-m);
+    font-size: var(--step--1);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .post-card__more a {
+    color: var(--teal);
+    text-decoration: none;
+  }
+
+  .post-card__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: var(--space-m);
+    border-top: 1px solid var(--border);
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  /* Push the rule to the bottom of the card even when the excerpt is short. */
+  .post-card__more {
+    margin-bottom: var(--space-m);
+  }
+</style>

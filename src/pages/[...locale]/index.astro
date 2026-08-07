@@ -2,32 +2,30 @@
 import type { GetStaticPaths } from 'astro';
 
 import Base from '../../layouts/Base.astro';
-import Hero from '../../components/Hero.astro';
-import AnswerBox from '../../components/AnswerBox.astro';
-import HikeCard from '../../components/HikeCard.astro';
+import VideoHero from '../../components/VideoHero.astro';
+import PhotoGrid from '../../components/PhotoGrid.astro';
 import Faq from '../../components/Faq.astro';
-import ContactCta from '../../components/ContactCta.astro';
+import TranslationNotice from '../../components/TranslationNotice.astro';
+import CtaBanner from '../../components/CtaBanner.astro';
+import PostCard from '../../components/PostCard.astro';
 
 import { site, guides, type Locale } from '../../data/site';
-import { home } from '../../data/pages/home';
+import { homeCopy, homeLocales, partners } from '../../data/pages/home';
 import { localeStaticPaths } from '../../lib/paths';
-import { getLocalisedEntries, parseId, byOrder } from '../../lib/content';
-import { localePath, useTranslations, absoluteUrl } from '../../i18n/utils';
+import { getLocalisedEntries, parseId, byDateDesc } from '../../lib/content';
+import { localePath, useTranslations, absoluteUrl, formatDate } from '../../i18n/utils';
 import { buildGraph, webPageNode, breadcrumbNode, faqNode, trail } from '../../lib/schema';
 
 export const getStaticPaths = (() => localeStaticPaths()) satisfies GetStaticPaths;
 
 const { locale } = Astro.props as { locale: Locale };
 const t = useTranslations(locale);
-const copy = home[locale];
+const { copy, isFallback } = homeCopy(locale);
 
-const allHikes = (await getLocalisedEntries('hikes', locale)).sort(byOrder);
-const featured = allHikes.filter((h) => h.data.featured).slice(0, 3);
-const hikesToShow = featured.length ? featured : allHikes.slice(0, 3);
-
-const guidePages = (await getLocalisedEntries('guide', locale)).sort(byOrder).slice(0, 3);
+const posts = (await getLocalisedEntries('blog', locale)).sort(byDateDesc).slice(0, 3);
 
 const url = absoluteUrl(localePath(locale));
+
 const jsonLd = buildGraph(locale, [
   webPageNode({
     url,
@@ -37,8 +35,16 @@ const jsonLd = buildGraph(locale, [
     updated: new Date(),
   }),
   breadcrumbNode(url, trail(locale, [])),
+  // Answers below are drafts; the markup still emits so the shape is right
+  // from day one. Review the text in src/data/pages/home.ts before launch.
   faqNode(url, copy.faqs),
 ]);
+
+const services = [
+  { title: copy.privateTitle, body: copy.privateBody, path: 'private-hikes', tone: 'black' },
+  { title: copy.businessTitle, body: copy.businessBody, path: 'custom-hikes', tone: 'teal' },
+  { title: copy.otherTitle, body: copy.otherBody, path: 'hikes', tone: 'teal' },
+] as const;
 ---
 
 <Base
@@ -46,53 +52,92 @@ const jsonLd = buildGraph(locale, [
   description={copy.metaDescription}
   locale={locale}
   routeKey=""
+  availableLocales={homeLocales}
+  isFallback={isFallback}
   jsonLd={jsonLd}
-  flushHero
+  overHero
 >
-  <Hero
-    eyebrow={copy.heroEyebrow}
-    title={copy.heroTitle}
-    lede={copy.heroLede}
-    seed="tramuntana-home"
-  >
-    <a class="btn btn--primary" href={localePath(locale, 'hikes')}>{t('cta.allHikes')}</a>
-    <a class="btn btn--on-ink" href={localePath(locale, 'contact')}>{t('cta.enquire')}</a>
-  </Hero>
-
   {/*
-    The definition of the business, immediately after the hero and before any
-    sales copy. Self-contained on purpose: who we are, where, what it costs.
+    No `video` prop yet, so the hero renders its poster frame. Drop the file in
+    as public/video/hero.mp4 (plus hero.webm and a real hero-poster.jpg) and
+    add video="/video/hero" here — nothing else changes.
   */}
+  <VideoHero
+    poster="/video/hero-poster.jpg"
+    label={copy.heroVideoLabel}
+    scrollHint={copy.scrollHint}
+  />
+
+  {/* ---------------------------------------------------------- strapline */}
   <section class="section section--tight">
-    <div class="wrap wrap--prose">
-      <AnswerBox label={copy.introLabel}>
-        <p>{copy.intro}</p>
-        <p>{copy.intro2}</p>
-      </AnswerBox>
+    <div class="wrap wrap--prose text-center">
+      {isFallback && <div class="home__notice"><TranslationNotice locale={locale} /></div>}
+
+      <h2 class="home__strapline">{copy.strapline}</h2>
+
+      <p class="voice home__intro">
+        {copy.intro.before}<strong>{copy.intro.emphasis}</strong>{copy.intro.after}
+      </p>
     </div>
   </section>
 
-  <section class="section section--sunken" aria-labelledby="ways-heading">
+  {/* --------------------------------------------------------- photo grid */}
+  <section class="section section--tight home__photos">
     <div class="wrap">
-      <div class="section-head">
-        <p class="eyebrow">{site.shortName}</p>
-        <h2 id="ways-heading">{copy.waysHeading}</h2>
-        <p class="lede">{copy.waysLede}</p>
+      <PhotoGrid
+        photos={[
+          { alt: 'Helena, mountain guide at Blue Peaks Mallorca', seed: 'helena' },
+          { alt: 'A cove on the north coast of Mallorca', seed: 'coast' },
+          { alt: 'Wild goats above the sea in the Serra de Tramuntana', seed: 'goats' },
+          { alt: 'Matija, mountain guide at Blue Peaks Mallorca', seed: 'matija' },
+        ]}
+      />
+    </div>
+  </section>
+
+  {/* ------------------------------------------------------------ welcome */}
+  <section class="section section--tight" aria-labelledby="welcome-heading">
+    <div class="wrap wrap--prose text-center">
+      <h2 class="visually-hidden" id="welcome-heading">
+        About {guides.map((g) => g.name).join(' and ')}
+      </h2>
+
+      <p class="voice">{copy.welcome}</p>
+
+      <div class="languages">
+        <h3 class="languages__label">{copy.languagesLabel}</h3>
+        <ul class="languages__list">
+          {
+            site.languagesSpoken.map((language) => (
+              <li>
+                <span class="languages__dot" aria-hidden="true" />
+                {language}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  {/* ----------------------------------------------------------- services */}
+  <section class="section" aria-labelledby="services-heading">
+    <div class="wrap">
+      <div class="section-title">
+        <h2 class="section-title__text" id="services-heading">{copy.servicesTitle}</h2>
       </div>
 
-      <div class="grid" style="--min: 17rem">
+      <div class="services">
         {
-          copy.ways.map((way) => (
-            <article class="card way">
-              <div class="card__body">
-                <h3 class="card__title">
-                  <a href={localePath(locale, way.path)}>{way.title}</a>
-                </h3>
-                <p class="way__body">{way.body}</p>
-                <p class="way__cta" aria-hidden="true">
-                  {way.cta} →
-                </p>
-              </div>
+          services.map((service) => (
+            <article class="service">
+              <a
+                href={localePath(locale, service.path)}
+                class:list={['service__bar', `service__bar--${service.tone}`]}
+              >
+                {service.title}
+              </a>
+              <p class="service__body">{service.body}</p>
             </article>
           ))
         }
@@ -100,33 +145,45 @@ const jsonLd = buildGraph(locale, [
     </div>
   </section>
 
+  {/* ------------------------------------------------------------- mantra */}
+  <section class="section section--tight">
+    <div class="wrap text-center">
+      <div class="section-title">
+        <h2 class="section-title__text">{copy.mantra}</h2>
+      </div>
+      <p class="home__mantra-sub">{copy.mantraSub}</p>
+    </div>
+  </section>
+
+  {/* ---------------------------------------------------------- CTA banner */}
+  <CtaBanner locale={locale} title={copy.ctaTitle} buttonLabel={copy.ctaButton} />
+
+  {/* --------------------------------------------------------------- blog */}
   {
-    hikesToShow.length > 0 && (
-      <section class="section" aria-labelledby="hikes-heading">
+    posts.length > 0 && (
+      <section class="section section--white" aria-labelledby="blog-heading">
         <div class="wrap">
-          <div class="section-head">
-            <h2 id="hikes-heading">{copy.hikesHeading}</h2>
-            <p class="lede">{copy.hikesLede}</p>
+          <div class="section-title">
+            <h2 class="section-title__text" id="blog-heading">
+              {copy.blogTitle}
+            </h2>
           </div>
 
-          <div class="grid" style="--min: 18rem">
-            {hikesToShow.map((hike, index) => (
-              <HikeCard
+          <div class="grid" style="--min: 19rem">
+            {posts.map((post) => (
+              <PostCard
                 locale={locale}
-                slug={parseId(hike.id).slug}
-                title={hike.data.title}
-                summary={hike.data.summary}
-                image={hike.data.heroImage}
-                imageAlt={hike.data.heroAlt}
-                facts={hike.data.facts}
-                index={index}
+                slug={parseId(post.id).slug}
+                title={post.data.title}
+                summary={post.data.summary}
+                published={post.data.published}
               />
             ))}
           </div>
 
-          <p class="section-more">
-            <a class="btn btn--ghost" href={localePath(locale, 'hikes')}>
-              {t('cta.allHikes')}
+          <p class="home__blog-all">
+            <a class="btn btn--outline" href={localePath(locale, 'blog')}>
+              {copy.blogAll}
             </a>
           </p>
         </div>
@@ -134,169 +191,211 @@ const jsonLd = buildGraph(locale, [
     )
   }
 
-  <section class="section section--sunken" aria-labelledby="guides-heading">
+  {/* --------------------------------------------------------------- FAQs */}
+  <section class="section section--white">
     <div class="wrap">
-      <div class="guides">
-        <div class="guides__text">
-          <p class="eyebrow">{guides.map((g) => g.name).join(' & ')}</p>
-          <h2 id="guides-heading">{copy.guidesHeading}</h2>
-          <p>{copy.guidesBody}</p>
-          <p>{copy.guidesBody2}</p>
-          <p>
-            <a class="btn btn--ghost" href={localePath(locale, 'about')}>{copy.guidesCta}</a>
-          </p>
-        </div>
+      <Faq locale={locale} faqs={copy.faqs} heading={copy.faqTitle} />
+    </div>
+  </section>
 
-        <dl class="guides__facts">
-          <div>
-            <dt>{t('label.languages')}</dt>
-            <dd>{site.languagesSpoken.join(', ')}</dd>
-          </div>
-          <div>
-            <dt>{t('facts.group')}</dt>
-            <dd>Max. {site.pricing.privateMaxGroup}</dd>
-          </div>
-          <div>
-            <dt>{t('facts.price')}</dt>
-            <dd>€{site.pricing.privateDayRate} {t('label.perDay')}</dd>
-          </div>
-        </dl>
+  {/* ----------------------------------------------------------- partners */}
+  <section class="section section--tight" aria-labelledby="partners-heading">
+    <div class="wrap">
+      <div class="section-title">
+        <h2 class="section-title__text" id="partners-heading">{copy.partnersTitle}</h2>
       </div>
-    </div>
-  </section>
 
-  {
-    guidePages.length > 0 && (
-      <section class="section" aria-labelledby="practical-heading">
-        <div class="wrap">
-          <div class="section-head">
-            <h2 id="practical-heading">{copy.practicalHeading}</h2>
-            <p class="lede">{copy.practicalLede}</p>
-          </div>
-
-          <ul class="guide-list">
-            {guidePages.map((page) => (
-              <li>
-                <a href={localePath(locale, `guide/${parseId(page.id).slug}`)}>
-                  <h3>{page.data.title}</h3>
-                  <p>{page.data.summary}</p>
+      <ul class="partners">
+        {
+          partners.map((partner) => (
+            <li class="partners__item">
+              {partner.url ? (
+                <a href={partner.url} rel="noopener" target="_blank">
+                  {partner.name}
                 </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )
-  }
-
-  <section class="section section--tight">
-    <div class="wrap">
-      <Faq locale={locale} faqs={copy.faqs} level={3} />
+              ) : (
+                <span>{partner.name}</span>
+              )}
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </section>
-
-  <ContactCta locale={locale} />
 </Base>
 
 <style>
-  .way__body {
-    color: var(--text-muted);
-    line-height: var(--leading-relaxed);
+  .home__notice {
+    margin-bottom: var(--space-l);
+    text-align: left;
   }
 
-  .way__cta {
-    margin-top: auto;
-    padding-top: var(--space-s);
-    font-size: var(--step--1);
-    font-weight: 500;
-    color: var(--link);
+  .home__strapline {
+    font-size: var(--step-4);
+    font-weight: 600;
+    color: var(--heading-olive);
+    max-width: 18ch;
+    margin-inline: auto;
   }
 
-  .section-more {
-    margin-top: var(--space-l);
+  .home__intro {
+    margin-top: var(--space-xl);
+    max-width: 30ch;
+    margin-inline: auto;
   }
 
-  .guides {
-    display: grid;
-    gap: var(--space-l);
+  .home__photos {
+    padding-top: 0;
   }
 
-  .guides__text > * + * {
-    margin-top: var(--space-s);
+  /* ---- Languages row ---- */
+
+  .languages {
+    margin-top: var(--space-2xl);
   }
 
-  .guides__text p:not(.eyebrow) {
-    color: var(--text-muted);
-    line-height: var(--leading-relaxed);
-    max-width: var(--measure);
+  .languages__label {
+    font-family: var(--font-sans);
+    font-size: var(--step-0);
+    font-weight: 600;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: var(--charcoal);
+    margin-bottom: var(--space-m);
   }
 
-  .guides__facts {
-    display: grid;
-    gap: var(--space-s);
-    margin: 0;
-    padding: var(--space-m);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-m);
-    align-content: start;
-  }
-
-  .guides__facts dt {
-    font-size: var(--step--1);
-    color: var(--text-faint);
-  }
-
-  .guides__facts dd {
-    margin: 0.15rem 0 0;
-    font-weight: 500;
-  }
-
-  .guide-list {
-    display: grid;
-    gap: 0;
+  .languages__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2xs) 0;
     margin: 0;
     padding: 0;
     list-style: none;
-    border-top: 1px solid var(--border);
   }
 
-  .guide-list li {
-    border-bottom: 1px solid var(--border);
+  .languages__list li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-inline: var(--space-m);
+    font-size: var(--step-1);
   }
 
-  .guide-list a {
+  /* Hairline separators between languages, matching the live site. */
+  .languages__list li + li {
+    border-left: 1px solid var(--border-strong);
+  }
+
+  .languages__dot {
+    width: 1.1rem;
+    height: 1.1rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--olive);
+    box-shadow: inset 0 0 0 3px var(--greige);
+  }
+
+  /* ---- Services ---- */
+
+  .services {
+    display: grid;
+    gap: var(--space-xl);
+    max-width: 44rem;
+    margin-inline: auto;
+  }
+
+  .service__bar {
     display: block;
-    padding-block: var(--space-m);
-    text-decoration: none;
-    color: inherit;
-    transition: padding-inline-start var(--duration) var(--ease-out);
-  }
-
-  .guide-list a:hover {
-    padding-inline-start: var(--space-2xs);
-  }
-
-  .guide-list h3 {
+    padding: var(--space-m) var(--space-l);
+    border-radius: var(--radius-s);
     font-size: var(--step-2);
-    color: var(--ink-800);
+    font-weight: 500;
+    text-align: center;
+    text-decoration: none;
+    transition:
+      transform var(--duration) var(--ease-out),
+      filter var(--duration) var(--ease-out);
   }
 
-  .guide-list a:hover h3 {
-    color: var(--link);
+  .service__bar--black {
+    background: var(--black);
+    color: #fff;
   }
 
-  .guide-list p {
-    margin-top: var(--space-3xs);
+  .service__bar--teal {
+    background: var(--teal);
+    color: #fff;
+  }
+
+  .service__bar:hover {
+    filter: brightness(1.12);
+    color: #fff;
+  }
+
+  .service__bar:active {
+    transform: translateY(1px);
+  }
+
+  .service__body {
+    margin-top: var(--space-m);
+    text-align: center;
     color: var(--text-muted);
-    max-width: var(--measure);
+    line-height: var(--leading-relaxed);
+    max-width: 46ch;
+    margin-inline: auto;
   }
 
-  @media (min-width: 56rem) {
-    .guides {
-      grid-template-columns: 1.8fr 1fr;
+  .home__mantra-sub {
+    font-weight: 600;
+    color: var(--charcoal);
+  }
+
+  .home__blog-all {
+    margin-top: var(--space-xl);
+    text-align: center;
+  }
+
+  /* ---- Partners ---- */
+
+  .partners {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-xl) var(--space-2xl);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+    Wordmarks stand in for the partner logos. Drop the real files into
+    src/assets/partners/ and swap the <span> for an <Image>.
+  */
+  .partners__item {
+    font-size: var(--step-2);
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--charcoal);
+    opacity: 0.75;
+    text-align: center;
+  }
+
+  .partners__item a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .partners__item a:hover {
+    opacity: 1;
+    color: var(--olive);
+  }
+
+  @media (min-width: 48rem) {
+    .services {
       gap: var(--space-2xl);
-      align-items: start;
     }
   }
 </style>

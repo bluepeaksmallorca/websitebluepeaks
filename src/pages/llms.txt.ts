@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
 import { getCollection } from 'astro:content';
 import { site, guides, DEFAULT_LOCALE } from '../data/site';
-import { parseId, byDifficulty } from '../lib/content';
+import { parseId } from '../lib/content';
 import { absoluteUrl } from '../i18n/utils';
-import { formatMonthRanges } from '../lib/format';
 
 /**
  * /llms.txt — a machine-readable index of the site.
@@ -24,10 +23,6 @@ export const GET: APIRoute = async () => {
   const english = <T extends { id: string; data: { draft?: boolean } }>(entries: T[]) =>
     entries.filter((e) => parseId(e.id).locale === DEFAULT_LOCALE && !e.data.draft);
 
-  const hikes = english(await getCollection('hikes')).sort(byDifficulty);
-  const guidePages = english(await getCollection('guide')).sort(
-    (a, b) => a.data.order - b.data.order
-  );
   const posts = english(await getCollection('blog')).sort(
     (a, b) => b.data.published.getTime() - a.data.published.getTime()
   );
@@ -66,52 +61,8 @@ export const GET: APIRoute = async () => {
   lines.push(`- Website languages: English, German, Spanish, Catalan, Dutch, French`);
   lines.push('');
 
-  if (hikes.length) {
-    lines.push('## Hiking routes');
-    lines.push('');
-    lines.push(
-      'Each route page states real distance, cumulative ascent and walking time. ' +
-        'Listed easiest first.'
-    );
-    lines.push('');
-    for (const hike of hikes) {
-      const slug = parseId(hike.id).slug;
-      const f = hike.data.facts;
-
-      // On a canyon descent the ascent figure is close to meaningless — quoting
-      // "60 m ascent" for the hardest route on the island would actively
-      // mislead. Name the descent too whenever it dominates.
-      const vertical =
-        f.descentM && f.descentM > f.ascentM * 2
-          ? `${f.ascentM} m ascent / ${f.descentM} m descent`
-          : `${f.ascentM} m ascent`;
-
-      lines.push(
-        `- [${hike.data.title}](${absoluteUrl(`/hikes/${slug}.md`)}): ` +
-          `${f.difficulty}, ${f.distanceKm} km, ${vertical}, ` +
-          `${f.durationHoursMin}–${f.durationHoursMax} h. Starts at ${f.startPoint}. ` +
-          `Best ${formatMonthRanges(f.bestMonths, 'en') || 'year-round'}. ${hike.data.summary}`
-      );
-    }
-    lines.push('');
-  }
-
-  if (guidePages.length) {
-    lines.push('## Practical guides');
-    lines.push('');
-    lines.push('Reference pages about hiking in Mallorca. Non-commercial.');
-    lines.push('');
-    for (const page of guidePages) {
-      const slug = parseId(page.id).slug;
-      lines.push(
-        `- [${page.data.title}](${absoluteUrl(`/guide/${slug}.md`)}): ${page.data.summary}`
-      );
-    }
-    lines.push('');
-  }
-
   if (pages.length) {
-    lines.push('## About the company');
+    lines.push('## Pages');
     lines.push('');
     for (const page of pages) {
       const slug = parseId(page.id).slug;

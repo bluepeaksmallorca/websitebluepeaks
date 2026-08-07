@@ -1,11 +1,11 @@
 {
   "name": "Blue Peaks Mallorca",
   "short_name": "Blue Peaks",
-  "description": "Guided hiking in the Serra de Tramuntana, Mallorca.",
+  "description": "Tailored hiking days with mindful experiences in Mallorca.",
   "start_url": "/",
   "display": "browser",
-  "background_color": "#f5f1ea",
-  "theme_color": "#1a4054",
+  "background_color": "#cfccc3",
+  "theme_color": "#676147",
   "icons": [
     {
       "src": "/favicon.svg",

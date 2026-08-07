@@ -66,6 +66,7 @@ faqs:
     a: >-
       No drinkable water on the route itself and none at the summit. Carry at
       least two litres per person. The reservoir water is not for drinking.
+draft: true
 ---
 
 If someone has one day in the mountains and wants to stand on a summit, this is the one we suggest. Puig de l'Ofre gives a genuine mountain top — a proper cairn, a 360-degree view, a sense of having arrived somewhere — for a level of effort that most reasonably active people can manage.

@@ -9,7 +9,7 @@ import Breadcrumbs from '../../../components/Breadcrumbs.astro';
 import AnswerBox from '../../../components/AnswerBox.astro';
 import Faq from '../../../components/Faq.astro';
 import Toc from '../../../components/Toc.astro';
-import ContactCta from '../../../components/ContactCta.astro';
+import CtaBanner from '../../../components/CtaBanner.astro';
 import TranslationNotice from '../../../components/TranslationNotice.astro';
 
 import { DEFAULT_LOCALE, type Locale } from '../../../data/site';
@@ -122,7 +122,7 @@ const jsonLd = buildGraph(locale, [
         <Content />
       </div>
 
-      <Faq locale={locale} faqs={data.faqs} level={3} />
+      <Faq locale={locale} faqs={data.faqs} />
 
       {
         related.length > 0 && (
@@ -147,7 +147,7 @@ const jsonLd = buildGraph(locale, [
     </aside>
   </div>
 
-  <ContactCta locale={locale} />
+  <CtaBanner locale={locale} />
 </Base>
 
 <style>

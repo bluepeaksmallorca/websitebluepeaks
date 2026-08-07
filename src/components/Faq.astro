@@ -3,45 +3,46 @@ import type { Locale } from '../data/site';
 import { useTranslations } from '../i18n/utils';
 
 /**
- * Questions and answers as plain headings and paragraphs — deliberately not an
- * accordion.
+ * The FAQ accordion, matching the live site: a bordered stack of questions
+ * with a plus that turns into a minus.
  *
- * Collapsed <details> content is still indexable, but an open, flat question →
- * answer pair is the most reliably extractable shape there is, and this is the
- * block most likely to be quoted back to someone asking an assistant about
- * hiking in Mallorca. The small cost in page length is worth it.
- *
- * The same array is rendered into FAQPage JSON-LD by the page that uses it.
+ * Built on <details>/<summary>, so it works with no JavaScript, is keyboard
+ * operable for free, and — the part that matters for the AI-findability goal —
+ * keeps every answer in the DOM whether it is open or not. Collapsed content
+ * is still indexed and still extractable; the same array is also emitted as
+ * FAQPage JSON-LD by the page that renders this.
  */
 interface Props {
   locale: Locale;
   faqs: Array<{ q: string; a: string }>;
-  /** Override the section heading. */
   heading?: string;
-  /** Heading level for the questions, so the document outline stays sane. */
-  level?: 2 | 3;
   id?: string;
 }
 
-const { locale, faqs, heading, level = 3, id = 'faq' } = Astro.props;
+const { locale, faqs, heading, id = 'faqs' } = Astro.props;
 const t = useTranslations(locale);
-const QTag = `h${level}` as 'h2' | 'h3';
-const HeadingTag = `h${level - 1}` as 'h1' | 'h2';
 ---
 
 {
   faqs.length > 0 && (
     <section class="faq" id={id} aria-labelledby={`${id}-heading`}>
-      <HeadingTag class="faq__heading" id={`${id}-heading`}>
-        {heading ?? t('label.faq')}
-      </HeadingTag>
+      <div class="section-title">
+        <h2 class="section-title__text" id={`${id}-heading`}>
+          {heading ?? t('label.faq')}
+        </h2>
+      </div>
 
       <div class="faq__list">
-        {faqs.map((faq) => (
-          <div class="faq__item">
-            <QTag class="faq__q">{faq.q}</QTag>
-            <p class="faq__a">{faq.a}</p>
-          </div>
+        {faqs.map((faq, index) => (
+          <details class="faq__item" name={id} open={index === 0}>
+            <summary class="faq__q">
+              <span>{faq.q}</span>
+              <span class="faq__icon" aria-hidden="true" />
+            </summary>
+            <div class="faq__a">
+              <p>{faq.a}</p>
+            </div>
+          </details>
         ))}
       </div>
     </section>
@@ -49,47 +50,90 @@ const HeadingTag = `h${level - 1}` as 'h1' | 'h2';
 }
 
 <style>
-  .faq__heading {
-    font-size: var(--step-3);
-    margin-bottom: var(--space-m);
-  }
-
   .faq__list {
-    display: grid;
-    gap: var(--space-m);
+    max-width: 52rem;
+    margin-inline: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-s);
+    overflow: hidden;
+    background: var(--white);
   }
 
-  .faq__item {
-    padding-bottom: var(--space-m);
-    border-bottom: 1px solid var(--border);
-  }
-
-  .faq__item:last-child {
-    padding-bottom: 0;
-    border-bottom: 0;
+  .faq__item + .faq__item {
+    border-top: 1px solid var(--border);
   }
 
   .faq__q {
-    font-family: var(--font-body);
-    font-size: var(--step-0);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-m);
+    /* Generous padding: these are thumb targets, and the live site is roomy. */
+    padding: var(--space-m) var(--space-m);
     font-weight: 600;
+    font-size: var(--step-1);
     line-height: var(--leading-snug);
-    letter-spacing: 0;
-    color: var(--ink-800);
-    margin-bottom: var(--space-3xs);
+    color: var(--navy);
+    cursor: pointer;
+    list-style: none;
+    transition: background-color var(--duration) var(--ease-out);
+  }
+
+  .faq__q::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq__q:hover {
+    background: rgb(0 0 0 / 0.02);
+  }
+
+  /* The plus, drawn from two bars so it can rotate into a minus. */
+  .faq__icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin-top: 0.28em;
+  }
+
+  .faq__icon::before,
+  .faq__icon::after {
+    content: '';
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: 2.5px;
+    background: var(--navy);
+    border-radius: 2px;
+    transform: translateY(-50%);
+    transition: transform var(--duration) var(--ease-out);
+  }
+
+  .faq__icon::after {
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  .faq__item[open] .faq__icon::after {
+    transform: translateY(-50%) rotate(0deg);
   }
 
   .faq__a {
-    color: var(--text-muted);
-    line-height: var(--leading-relaxed);
-    max-width: var(--measure);
+    padding: 0 var(--space-m) var(--space-m);
   }
 
-  /* Two columns once there is room; questions stay with their answers. */
-  @media (min-width: 60rem) {
-    .faq__list {
-      grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-l) var(--space-xl);
+  .faq__a p {
+    max-width: var(--measure);
+    color: var(--text-muted);
+    line-height: var(--leading-relaxed);
+  }
+
+  @media (min-width: 48rem) {
+    .faq__q {
+      padding: var(--space-m) var(--space-l);
+      font-size: var(--step-1);
+    }
+
+    .faq__a {
+      padding: 0 var(--space-l) var(--space-l);
     }
   }
 </style>

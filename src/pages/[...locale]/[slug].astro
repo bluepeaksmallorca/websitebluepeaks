@@ -3,10 +3,10 @@ import { render } from 'astro:content';
 import type { GetStaticPaths } from 'astro';
 
 import Base from '../../layouts/Base.astro';
-import Hero from '../../components/Hero.astro';
-import AnswerBox from '../../components/AnswerBox.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Breadcrumbs from '../../components/Breadcrumbs.astro';
 import Faq from '../../components/Faq.astro';
-import ContactCta from '../../components/ContactCta.astro';
+import BokunWidget from '../../components/BokunWidget.astro';
 import TranslationNotice from '../../components/TranslationNotice.astro';
 
 import { DEFAULT_LOCALE, type Locale } from '../../data/site';
@@ -15,10 +15,8 @@ import { localePath, useTranslations, absoluteUrl, formatDate } from '../../i18n
 import { buildGraph, webPageNode, breadcrumbNode, faqNode, trail } from '../../lib/schema';
 
 /**
- * Standalone prose pages: /private-hikes/, /custom-hikes/, /about/, /legal/.
- *
- * They share this one template so that adding a page — or a translation of an
- * existing one — is a Markdown file and nothing else.
+ * The service pages (/private-hikes/, /custom-hikes/, /hikes/) and the legal
+ * notice. One template, one Markdown file per page per language.
  */
 export const getStaticPaths = (async () => localisedPaths('pages')) satisfies GetStaticPaths;
 
@@ -32,12 +30,7 @@ const { Content } = await render(entry);
 const { data } = entry;
 
 const availableLocales = await getTranslatedLocales('pages', slug);
-
 const url = absoluteUrl(localePath(locale, slug));
-const image = data.heroImage ? absoluteUrl(data.heroImage.src) : undefined;
-
-const pageType =
-  slug === 'about' ? 'AboutPage' : slug === 'contact' ? 'ContactPage' : 'WebPage';
 
 const jsonLd = buildGraph(locale, [
   webPageNode({
@@ -46,8 +39,6 @@ const jsonLd = buildGraph(locale, [
     description: data.description,
     locale,
     updated: data.updated,
-    type: pageType,
-    primaryImage: image,
   }),
   breadcrumbNode(url, trail(locale, [{ name: data.title, path: slug }])),
   faqNode(url, data.faqs),
@@ -61,108 +52,66 @@ const jsonLd = buildGraph(locale, [
   routeKey={slug}
   availableLocales={availableLocales}
   isFallback={entry.isFallback}
-  image={image}
   jsonLd={jsonLd}
   noindex={data.noindex}
   markdownUrl={locale === DEFAULT_LOCALE ? absoluteUrl(`/${slug}.md`) : undefined}
-  flushHero
 >
-  <Hero
-    eyebrow={data.eyebrow}
-    title={data.heading ?? data.title}
-    lede={data.lede}
-    image={data.heroImage}
-    imageAlt={data.heroAlt}
-    seed={slug}
-    size="compact"
-  >
-    {
-      !data.hideCta && (
-        <a class="btn btn--primary" href={localePath(locale, 'contact')}>
-          {t('cta.enquire')}
-        </a>
-      )
-    }
-  </Hero>
+  <PageHeader eyebrow={data.eyebrow} title={data.title} lede={data.lede}>
+    <Breadcrumbs slot="breadcrumbs" locale={locale} crumbs={[]} current={data.title} />
+  </PageHeader>
 
-  <div class="section">
-    <div class="wrap wrap--prose page-body">
+  <div class="section section--tight">
+    <div class="wrap page-body">
       {entry.isFallback && <TranslationNotice locale={locale} />}
 
-      <AnswerBox>
-        <p>{data.summary}</p>
-      </AnswerBox>
-
-      {
-        data.points.length > 0 && (
-          <ul class="points">
-            {data.points.map((point) => (
-              <li class="points__item">
-                <h2 class="points__title">{point.title}</h2>
-                <p class="points__body">{point.body}</p>
-              </li>
-            ))}
-          </ul>
-        )
-      }
-
-      <div class="prose">
+      <div class="prose center-block">
         <Content />
       </div>
 
-      <Faq locale={locale} faqs={data.faqs} level={3} />
+      {
+        data.bokunProduct && (
+          <div class="page-body__booking">
+            <BokunWidget locale={locale} product={data.bokunProduct} context={data.title} />
+          </div>
+        )
+      }
 
       <p class="page-body__updated">
-        {t('label.updated')}: <time datetime={data.updated.toISOString()}>
-          {formatDate(data.updated, locale)}
-        </time>
+        {t('label.updated')}:{' '}
+        <time datetime={data.updated.toISOString()}>{formatDate(data.updated, locale)}</time>
       </p>
     </div>
   </div>
 
-  {!data.hideCta && <ContactCta locale={locale} context={data.title} />}
+  {
+    data.faqs.length > 0 && (
+      <div class="section section--white">
+        <div class="wrap">
+          <Faq locale={locale} faqs={data.faqs} />
+        </div>
+      </div>
+    )
+  }
 </Base>
 
 <style>
   .page-body > * + * {
-    margin-top: var(--space-l);
+    margin-top: var(--space-xl);
   }
 
-  .points {
-    display: grid;
-    gap: var(--space-m);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  .points__item {
-    padding: var(--space-m);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-m);
-  }
-
-  .points__title {
-    font-size: var(--step-1);
-    margin-bottom: var(--space-3xs);
-  }
-
-  .points__body {
-    color: var(--text-muted);
-    line-height: var(--leading-relaxed);
+  .page-body__booking {
+    max-width: 46rem;
+    margin-inline: auto;
+    /* Scroll target for the header CTA and any deep link into booking. */
+    scroll-margin-top: calc(var(--header-h) + var(--space-m));
   }
 
   .page-body__updated {
-    font-size: var(--step--1);
-    color: var(--text-faint);
+    max-width: var(--width-prose);
+    margin-inline: auto;
     padding-top: var(--space-m);
     border-top: 1px solid var(--border);
-  }
-
-  @media (min-width: 48rem) {
-    .points {
-      grid-template-columns: repeat(2, 1fr);
-    }
+    font-size: var(--step--1);
+    color: var(--text-faint);
   }
 </style>

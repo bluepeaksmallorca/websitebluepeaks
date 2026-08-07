@@ -1,94 +1,166 @@
 ---
+/**
+ * The Blue Peaks lockup: a low-poly ridgeline drawn in thin strokes, above
+ * wide-tracked capitals.
+ *
+ * This is a redrawn approximation of the mark on the live site, close enough
+ * to sit in the header and over the hero video without looking wrong. Drop
+ * the original vector in as `public/logo-mark.svg` and swap the inline <svg>
+ * below for an <img> when you have it — the geometry here is hand-traced from
+ * a screenshot, not the real artwork.
+ */
 interface Props {
-  /** 'ink' on light backgrounds, 'light' on the dark footer. */
+  /** 'inline' for the header, 'stacked' for the hero lockup. */
+  layout?: 'inline' | 'stacked';
+  /** 'ink' on the greige ground, 'light' over video and on the black footer. */
   tone?: 'ink' | 'light';
+  /** Hero size, in rem, for the stacked layout. */
+  size?: number;
 }
-const { tone = 'ink' } = Astro.props;
+
+const { layout = 'inline', tone = 'ink', size } = Astro.props;
 ---
 
-<span class:list={['logo', `logo--${tone}`]}>
+<span
+  class:list={['logo', `logo--${layout}`, `logo--${tone}`]}
+  style={size ? `--logo-size: ${size}rem` : undefined}
+>
   <svg
     class="logo__mark"
-    viewBox="0 0 32 26"
-    width="30"
-    height="24"
+    viewBox="0 0 200 62"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.6"
+    stroke-linejoin="round"
     aria-hidden="true"
     focusable="false"
   >
-    {/* Two ridgelines: the near peak solid, the far one drawn, like the Tramuntana at dusk. */}
-    <path
-      d="M1 23.5 L11.5 5 L18 16.5 L20.5 12.5 L31 23.5 Z"
-      fill="currentColor"
-      opacity="0.16"></path>
-    <path
-      d="M1 23.5 L11.5 5 L18 16.5"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"></path>
-    <path
-      d="M15.5 20.5 L20.5 12.5 L31 23.5"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      opacity="0.55"></path>
+    {/* Left massif: a faceted block with internal triangulation. */}
+    <path d="M4 55 L4 26 L20 12 L46 22 L60 8 L86 30 L96 55 Z"></path>
+    <path d="M4 26 L46 22 L20 12"></path>
+    <path d="M46 22 L60 8 L70 41 L46 22"></path>
+    <path d="M70 41 L86 30"></path>
+    <path d="M4 55 L96 55"></path>
+
+    {/* Right massif, lower and simpler. */}
+    <path d="M104 55 L104 30 L126 20 L150 6 L196 40 L196 55 Z"></path>
+    <path d="M104 30 L150 6"></path>
+    <path d="M126 20 L146 55"></path>
+    <path d="M150 6 L162 55"></path>
+
+    {/* The broken baseline that runs under both shapes. */}
+    <path d="M52 59 L66 59" stroke-linecap="round"></path>
+    <path d="M78 59 L140 59" stroke-linecap="round"></path>
+    <path d="M152 59 L154 59" stroke-linecap="round"></path>
+    <path d="M166 59 L196 59" stroke-linecap="round"></path>
   </svg>
 
-  <span class="logo__word">
-    <span class="logo__word-1">Blue</span>
-    <span class="logo__word-2">Peaks</span>
+  <span class="logo__words">
+    <span class="logo__name">Blue Peaks</span>
+    <span class="logo__place">Mallorca</span>
   </span>
 </span>
 
 <style>
   .logo {
     display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
+    /* Inherits, so the header can recolour the whole lockup while it floats
+       over the video without needing a different variant. */
+    color: inherit;
   }
 
-  .logo__mark {
-    flex-shrink: 0;
-    color: var(--blue-600);
+  .logo--ink {
+    color: var(--charcoal);
   }
 
-  .logo--light .logo__mark {
-    color: var(--sand-200);
+  .logo--light {
+    color: #fff;
   }
 
-  .logo__word {
-    display: inline-flex;
-    gap: 0.28em;
-    font-family: var(--font-display);
-    font-size: 1.28rem;
-    font-weight: 500;
-    letter-spacing: -0.02em;
-    line-height: 1;
+  .logo__words {
+    display: flex;
+    flex-direction: column;
+    text-transform: uppercase;
     white-space: nowrap;
+    line-height: 1;
   }
 
-  .logo__word-1 {
-    color: var(--ink-900);
+  .logo__name {
+    color: inherit;
+    font-weight: 400;
+    letter-spacing: var(--tracking-logo);
+    /* Tracked capitals gain a trailing space; pull it back so the block centres. */
+    margin-right: calc(var(--tracking-logo) * -1);
   }
 
-  .logo__word-2 {
-    color: var(--blue-600);
+  .logo__place {
+    color: inherit;
+    font-weight: 400;
+    letter-spacing: var(--tracking-logo);
+    margin-right: calc(var(--tracking-logo) * -1);
+    opacity: 0.9;
   }
 
-  .logo--light .logo__word-1 {
-    color: var(--sand-50);
+  /* ---- Inline: header ---- */
+
+  .logo--inline {
+    align-items: center;
+    gap: 0.6rem;
   }
 
-  .logo--light .logo__word-2 {
-    color: var(--sand-300);
+  .logo--inline .logo__mark {
+    width: 2.9rem;
+    flex-shrink: 0;
+    stroke-width: 2.4;
+  }
+
+  .logo--inline .logo__name {
+    font-size: 0.98rem;
+  }
+
+  .logo--inline .logo__place {
+    font-size: 0.62rem;
+    margin-top: 0.22em;
   }
 
   @media (min-width: 40rem) {
-    .logo__word {
-      font-size: 1.42rem;
+    .logo--inline .logo__mark {
+      width: 3.4rem;
     }
+
+    .logo--inline .logo__name {
+      font-size: 1.1rem;
+    }
+
+    .logo--inline .logo__place {
+      font-size: 0.68rem;
+    }
+  }
+
+  /* ---- Stacked: hero ---- */
+
+  .logo--stacked {
+    flex-direction: column;
+    align-items: center;
+    gap: 0.9em;
+    font-size: var(--logo-size, clamp(1.4rem, 0.8rem + 3vw, 2.6rem));
+  }
+
+  .logo--stacked .logo__mark {
+    width: min(78vw, 30rem);
+    stroke-width: 1.1;
+  }
+
+  .logo--stacked .logo__words {
+    align-items: center;
+    gap: 0.42em;
+  }
+
+  .logo--stacked .logo__name {
+    font-size: 1em;
+  }
+
+  .logo--stacked .logo__place {
+    font-size: 0.6em;
   }
 </style>

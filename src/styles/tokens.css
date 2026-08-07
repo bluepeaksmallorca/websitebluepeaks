@@ -1,104 +1,109 @@
 /*
   Design tokens for Blue Peaks Mallorca.
 
-  Palette is drawn from the Serra de Tramuntana itself: limestone and dry grass
-  for surfaces, deep sea blue for structure and actions, pine for quiet
-  accents, and a warm ember used sparingly where something must be noticed.
+  Every colour below was sampled directly from the live WordPress site rather
+  than picked to look similar, so the rebuild is the same brand and not an
+  interpretation of it.
 
-  The site is deliberately light-only. It is photography-led, and the warm
-  limestone ground is part of the brand; a token-swapped dark theme would fight
-  the images rather than serve them. Every colour below is therefore stated
-  explicitly — nothing inherits from the user agent.
+    #CFCCC3  greige page ground
+    #676147  olive — h2s, rules, blog serif titles, footer headings
+    #333230  charcoal — body text and section headings
+    #2A9D8E  teal — links, buttons, calls to action
+    #000000  black — the Private Hike bar
+    #FFFFFF  white — blog and FAQ sections
+    #22223A  near-navy — FAQ question text
+
+  Light-only, deliberately: the site is photography- and video-led on a warm
+  greige ground, and that ground is the brand. Every colour is stated
+  explicitly so nothing inherits from the user agent.
 */
 
 :root {
-  /* ---- Palette ------------------------------------------------------- */
-  --sand-50: #fbf9f6;
-  --sand-100: #f5f1ea;
-  --sand-200: #ebe4d8;
-  --sand-300: #d9cebb;
-  --stone-400: #b0a693;
-  --stone-500: #857c6c;
-  --stone-600: #635c50;
+  /* ---- Brand palette (sampled) ---------------------------------------- */
+  --greige: #cfccc3;
+  --greige-light: #dbd8d1;
+  --greige-dark: #bfbbb0;
 
-  --ink-700: #3d4750;
-  --ink-800: #232e38;
-  --ink-900: #131b22;
+  --olive: #676147;
+  --olive-light: #857e5f;
+  --olive-dark: #4c4835;
 
-  --blue-400: #4a8ab0;
-  --blue-500: #2f6d91;
-  --blue-600: #235571;
-  --blue-700: #1a4054;
-  --blue-800: #122d3d;
+  --charcoal: #333230;
+  --charcoal-soft: #55534f;
+  --grey: #767676;
+  --grey-light: #9a9894;
 
-  --pine-500: #4d7d66;
-  --pine-600: #3c6350;
+  --teal: #2a9d8e;
+  --teal-dark: #218173;
+  --teal-light: #3fb3a3;
 
-  --ember-500: #c2703d;
-  --ember-600: #a55a2c;
+  --navy: #22223a;
+  --black: #000000;
+  --white: #ffffff;
 
-  /* ---- Semantic roles ------------------------------------------------ */
-  --bg: var(--sand-50);
-  --bg-subtle: var(--sand-100);
-  --bg-sunken: var(--sand-200);
-  --surface: #ffffff;
-  --surface-inverse: var(--ink-900);
+  /* ---- Semantic roles ------------------------------------------------- */
+  --bg: var(--greige);
+  --bg-alt: var(--white);
+  --bg-sunken: var(--greige-dark);
+  --surface: var(--white);
+  --surface-inverse: var(--black);
 
-  --text: var(--ink-800);
-  --text-muted: var(--stone-600);
-  --text-faint: var(--stone-500);
-  --text-inverse: var(--sand-50);
-  --text-inverse-muted: #c8c0b2;
+  --text: var(--charcoal);
+  --text-muted: var(--charcoal-soft);
+  --text-faint: var(--grey);
+  --text-inverse: var(--white);
+  --heading: var(--charcoal);
+  --heading-olive: var(--olive);
 
-  --border: var(--sand-200);
-  --border-strong: var(--sand-300);
+  --border: rgb(51 50 48 / 0.14);
+  --border-strong: rgb(51 50 48 / 0.26);
+  --rule: var(--olive);
 
-  --primary: var(--blue-700);
-  --primary-hover: var(--blue-800);
-  --primary-text: #ffffff;
+  --primary: var(--teal);
+  --primary-hover: var(--teal-dark);
+  --primary-text: var(--white);
 
-  --accent: var(--ember-500);
-  --accent-hover: var(--ember-600);
+  --link: var(--teal);
+  --link-hover: var(--teal-dark);
 
-  --link: var(--blue-600);
-  --link-hover: var(--blue-800);
+  --focus: var(--olive);
 
-  --focus: var(--blue-400);
+  --whatsapp: #25d366;
+  --whatsapp-dark: #1da851;
 
-  /* WhatsApp's own brand green — used only for the WhatsApp button. */
-  --whatsapp: #1da851;
-  --whatsapp-hover: #17853f;
-
-  /* ---- Typography ---------------------------------------------------- */
-  --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
-  --font-body: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-
+  /* ---- Typography ----------------------------------------------------- */
   /*
-    Fluid scale. Each step interpolates between a comfortable phone size and a
-    desktop size across a 380px–1240px viewport, so nothing needs a breakpoint
-    just to change size.
+    Poppins for everything structural, Cormorant Garamond for the blog — the
+    same split the WordPress site uses. If these turn out to be the wrong
+    families, changing these two lines (and the families in
+    scripts/fetch-fonts.mjs) is the whole job.
   */
+  --font-sans: 'Poppins', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Cormorant Garamond', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Fluid scale between a comfortable phone size and a desktop size. */
   --step--1: clamp(0.83rem, 0.80rem + 0.14vw, 0.90rem);
   --step-0: clamp(1rem, 0.96rem + 0.20vw, 1.09rem);
-  --step-1: clamp(1.19rem, 1.12rem + 0.33vw, 1.36rem);
-  --step-2: clamp(1.41rem, 1.30rem + 0.55vw, 1.71rem);
-  --step-3: clamp(1.67rem, 1.49rem + 0.85vw, 2.14rem);
-  --step-4: clamp(1.98rem, 1.71rem + 1.28vw, 2.67rem);
-  --step-5: clamp(2.35rem, 1.94rem + 1.87vw, 3.34rem);
-  --step-6: clamp(2.79rem, 2.19rem + 2.68vw, 4.18rem);
+  --step-1: clamp(1.13rem, 1.06rem + 0.32vw, 1.30rem);
+  --step-2: clamp(1.32rem, 1.20rem + 0.58vw, 1.63rem);
+  --step-3: clamp(1.55rem, 1.36rem + 0.92vw, 2.04rem);
+  --step-4: clamp(1.81rem, 1.53rem + 1.38vw, 2.55rem);
+  --step-5: clamp(2.12rem, 1.71rem + 2.02vw, 3.19rem);
+  --step-6: clamp(2.48rem, 1.89rem + 2.94vw, 3.98rem);
 
-  --leading-tight: 1.12;
-  --leading-snug: 1.28;
+  --leading-tight: 1.15;
+  --leading-snug: 1.32;
   --leading-normal: 1.6;
-  --leading-relaxed: 1.72;
+  --leading-relaxed: 1.75;
 
-  --tracking-tight: -0.02em;
+  /* The logo and section headings are set wide; Poppins takes tracking well. */
+  --tracking-tight: -0.01em;
   --tracking-normal: 0;
-  --tracking-wide: 0.02em;
-  --tracking-caps: 0.08em;
+  --tracking-wide: 0.06em;
+  --tracking-logo: 0.22em;
 
-  /* ---- Space --------------------------------------------------------- */
+  /* ---- Space ---------------------------------------------------------- */
   --space-3xs: 0.25rem;
   --space-2xs: 0.5rem;
   --space-xs: 0.75rem;
@@ -109,33 +114,30 @@
   --space-2xl: 4rem;
   --space-3xl: 6rem;
 
-  /* Vertical rhythm between page sections, tighter on phones. */
-  --section-gap: clamp(3rem, 2rem + 5vw, 6.5rem);
+  /* The live site breathes a lot between sections; this preserves that. */
+  --section-gap: clamp(3.5rem, 2.2rem + 6vw, 7rem);
 
-  /* ---- Layout -------------------------------------------------------- */
-  --measure: 68ch; /* comfortable line length for long-form reading */
-  --width-prose: 46rem;
-  --width-content: 72rem;
-  --width-wide: 84rem;
+  /* ---- Layout --------------------------------------------------------- */
+  --measure: 62ch;
+  --width-prose: 44rem;
+  --width-content: 70rem;
+  --width-wide: 82rem;
   --gutter: clamp(1.15rem, 0.85rem + 1.5vw, 2.5rem);
 
-  /* ---- Shape --------------------------------------------------------- */
-  --radius-xs: 4px;
-  --radius-s: 8px;
-  --radius-m: 12px;
-  --radius-l: 20px;
-  --radius-xl: 28px;
+  /* ---- Shape ---------------------------------------------------------- */
+  --radius-xs: 3px;
+  --radius-s: 6px;
+  --radius-m: 10px;
+  --radius-l: 16px;
   --radius-pill: 999px;
 
-  /* Shadows are warm rather than neutral grey, to sit on the sand ground. */
-  --shadow-s: 0 1px 2px rgb(35 27 15 / 0.05), 0 2px 6px rgb(35 27 15 / 0.04);
-  --shadow-m: 0 2px 4px rgb(35 27 15 / 0.05), 0 8px 20px rgb(35 27 15 / 0.07);
-  --shadow-l: 0 4px 8px rgb(35 27 15 / 0.05), 0 18px 40px rgb(35 27 15 / 0.10);
+  --shadow-s: 0 1px 2px rgb(40 38 30 / 0.05), 0 2px 6px rgb(40 38 30 / 0.04);
+  --shadow-m: 0 2px 4px rgb(40 38 30 / 0.05), 0 8px 22px rgb(40 38 30 / 0.08);
+  --shadow-l: 0 4px 8px rgb(40 38 30 / 0.06), 0 18px 44px rgb(40 38 30 / 0.12);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
   --duration: 200ms;
 
-  /* Height of the sticky header; content offsets and scroll-margin key off it. */
   --header-h: 4rem;
 }
 

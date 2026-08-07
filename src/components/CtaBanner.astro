@@ -1,0 +1,132 @@
+---
+import { site, type Locale } from '../data/site';
+import { useTranslations } from '../i18n/utils';
+import Placeholder from './Placeholder.astro';
+
+/**
+ * The "GET IN TOUCH TO GET HIKING" banner: full-bleed photograph, an outlined
+ * white button, nothing else.
+ *
+ * Used at the foot of the homepage and of every article, so the WhatsApp
+ * number is always one tap away — which is how this business actually takes
+ * enquiries.
+ */
+interface Props {
+  locale: Locale;
+  title?: string;
+  buttonLabel?: string;
+  /** Prefills the WhatsApp message, e.g. the article the visitor was reading. */
+  context?: string;
+  /** Seed for the generated backdrop until a photograph is supplied. */
+  seed?: string;
+}
+
+const {
+  locale,
+  title = 'Get in touch to get hiking',
+  buttonLabel = 'WhatsApp Blue Peaks',
+  context,
+  seed = 'get-in-touch',
+} = Astro.props;
+
+const t = useTranslations(locale);
+
+const message = context
+  ? `Hi Blue Peaks! I'd like to ask about ${context}.`
+  : 'Hi Blue Peaks! I’d like to ask about a guided hiking day.';
+
+const whatsapp = `https://wa.me/${site.contact.whatsapp}?text=${encodeURIComponent(message)}`;
+---
+
+<section class="cta-banner" aria-labelledby="cta-banner-heading">
+  <div class="cta-banner__media">
+    <Placeholder seed={seed} variant="wide" />
+  </div>
+
+  <div class="wrap cta-banner__inner">
+    <h2 class="cta-banner__title" id="cta-banner-heading">{title}</h2>
+
+    <a class="btn btn--outline-light" href={whatsapp} rel="noopener" target="_blank">
+      {buttonLabel}
+    </a>
+
+    <p class="cta-banner__meta">
+      <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
+      <span aria-hidden="true">·</span>
+      <a href={`tel:${site.contact.phone}`}>{site.contact.phoneDisplay}</a>
+    </p>
+    <p class="visually-hidden">{t('contact.response')}</p>
+  </div>
+</section>
+
+<style>
+  .cta-banner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 24rem;
+    padding-block: var(--space-2xl);
+    overflow: hidden;
+    isolation: isolate;
+    text-align: center;
+  }
+
+  .cta-banner__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  .cta-banner__media :global(svg),
+  .cta-banner__media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .cta-banner::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(0 0 0 / 0.34);
+  }
+
+  .cta-banner__inner {
+    position: relative;
+  }
+
+  .cta-banner__title {
+    font-size: var(--step-4);
+    font-weight: 700;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    color: #fff;
+    max-width: 16ch;
+    margin-inline: auto;
+    margin-bottom: var(--space-l);
+    text-shadow: 0 1px 18px rgb(0 0 0 / 0.3);
+  }
+
+  .cta-banner__meta {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-2xs) var(--space-s);
+    margin-top: var(--space-l);
+    font-size: var(--step--1);
+    color: rgb(255 255 255 / 0.85);
+  }
+
+  .cta-banner__meta a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .cta-banner__meta a:hover {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+</style>

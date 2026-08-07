@@ -1,0 +1,111 @@
+---
+import { Image } from 'astro:assets';
+import Placeholder from './Placeholder.astro';
+
+/**
+ * The four-image collage: a tall portrait above a short landscape on the left,
+ * mirrored on the right so the two columns interlock.
+ *
+ * Built as two flex columns rather than one grid. A grid needs the tall and
+ * short cells to agree on row heights, which they only do if you hand-tune
+ * offsets — and those break the moment the aspect ratios or the gap change.
+ * Two columns of (3:4 + 4:3) come out the same total height by construction,
+ * at any width, with no magic numbers.
+ */
+interface Photo {
+  src?: ImageMetadata;
+  alt: string;
+  /** Stable seed for the generated stand-in when no photo is supplied. */
+  seed: string;
+}
+
+interface Props {
+  /** Order: tall-left, short-right, short-left, tall-right. */
+  photos: [Photo, Photo, Photo, Photo];
+}
+
+const { photos } = Astro.props;
+const [tallLeft, shortRight, shortLeft, tallRight] = photos;
+
+const columns = [
+  [
+    { photo: tallLeft, shape: 'tall' },
+    { photo: shortLeft, shape: 'short' },
+  ],
+  [
+    { photo: shortRight, shape: 'short' },
+    { photo: tallRight, shape: 'tall' },
+  ],
+] as const;
+---
+
+<div class="photo-grid">
+  {
+    columns.map((column) => (
+      <div class="photo-grid__col">
+        {column.map(({ photo, shape }) => (
+          <figure class:list={['photo-grid__cell', `photo-grid__cell--${shape}`]}>
+            {photo.src ? (
+              <Image
+                src={photo.src}
+                alt={photo.alt}
+                widths={[320, 480, 640, 900]}
+                sizes="(min-width: 60rem) 30rem, 46vw"
+                loading="lazy"
+                decoding="async"
+              />
+            ) : (
+              <Placeholder seed={photo.seed} />
+            )}
+          </figure>
+        ))}
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  .photo-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-s);
+    max-width: 62rem;
+    margin-inline: auto;
+  }
+
+  .photo-grid__col {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-s);
+  }
+
+  .photo-grid__cell {
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-l);
+    background: var(--greige-dark);
+  }
+
+  /* The two shapes are reciprocals, so either column order totals the same. */
+  .photo-grid__cell--tall {
+    aspect-ratio: 3 / 4;
+  }
+
+  .photo-grid__cell--short {
+    aspect-ratio: 4 / 3;
+  }
+
+  .photo-grid__cell :global(img),
+  .photo-grid__cell :global(svg) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (min-width: 48rem) {
+    .photo-grid,
+    .photo-grid__col {
+      gap: var(--space-m);
+    }
+  }
+</style>

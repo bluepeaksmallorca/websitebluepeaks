@@ -65,6 +65,7 @@ faqs:
       much of the climb is unshaded by late morning, and there is no water on
       the route. If you are set on summer, we start at first light and turn
       around by mid-morning.
+draft: true
 ---
 
 The Barranc de Biniaraix is the finest piece of dry-stone engineering on Mallorca, and one of the hardest three hours of walking on the island. It is a ravine above the hamlet of Biniaraix, just east of Sóller, and it has been paved with hand-laid steps for centuries — built so that people, mules and olives could move between the valley floor and the high pastures.

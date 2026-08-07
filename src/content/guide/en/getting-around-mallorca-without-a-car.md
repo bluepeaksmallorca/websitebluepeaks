@@ -49,6 +49,7 @@ faqs:
       By boat to Port de Sóller in season, which is the pleasant option, or by
       the 355 bus up the serpentine road. Both are seasonal and limited. Anyone
       walking the Torrent de Pareis needs the return booked before setting off.
+draft: true
 ---
 
 Mallorca has better public transport than most Mediterranean islands, and for hiking it is often the better option — not just the cheaper one. Linear routes are the best walking here, and linear routes and hire cars do not get along.

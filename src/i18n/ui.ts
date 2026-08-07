@@ -22,6 +22,13 @@ export const localeTags: Record<Locale, string> = {
 
 export const ui = {
   en: {
+    'nav.home': 'Home',
+    'footer.quickLinks': 'Quick Links',
+    'footer.whatsappUs': 'WhatsApp Us',
+    'footer.getInTouch': 'Get In Touch',
+    'footer.findUs': 'Find Us',
+    'footer.loadMap': 'Tap to load the map',
+    'footer.openInMaps': 'Open in Google Maps',
     'nav.hikes': 'Hikes',
     'nav.private': 'Private hikes',
     'nav.custom': 'Custom hikes',
@@ -99,6 +106,13 @@ export const ui = {
   },
 
   de: {
+    'nav.home': 'Startseite',
+    'footer.quickLinks': 'Schnellzugriff',
+    'footer.whatsappUs': 'WhatsApp uns',
+    'footer.getInTouch': 'Kontakt',
+    'footer.findUs': 'So finden Sie uns',
+    'footer.loadMap': 'Zum Laden der Karte tippen',
+    'footer.openInMaps': 'In Google Maps öffnen',
     'nav.hikes': 'Wanderungen',
     'nav.private': 'Private Touren',
     'nav.custom': 'Individuelle Touren',
@@ -176,6 +190,13 @@ export const ui = {
   },
 
   es: {
+    'nav.home': 'Inicio',
+    'footer.quickLinks': 'Enlaces rápidos',
+    'footer.whatsappUs': 'Escríbenos por WhatsApp',
+    'footer.getInTouch': 'Contacto',
+    'footer.findUs': 'Dónde estamos',
+    'footer.loadMap': 'Toca para cargar el mapa',
+    'footer.openInMaps': 'Abrir en Google Maps',
     'nav.hikes': 'Rutas',
     'nav.private': 'Rutas privadas',
     'nav.custom': 'Rutas a medida',
@@ -253,6 +274,13 @@ export const ui = {
   },
 
   ca: {
+    'nav.home': 'Inici',
+    'footer.quickLinks': 'Enllaços ràpids',
+    'footer.whatsappUs': 'Escriu-nos per WhatsApp',
+    'footer.getInTouch': 'Contacte',
+    'footer.findUs': 'On som',
+    'footer.loadMap': 'Toca per carregar el mapa',
+    'footer.openInMaps': 'Obrir a Google Maps',
     'nav.hikes': 'Rutes',
     'nav.private': 'Rutes privades',
     'nav.custom': 'Rutes a mida',
@@ -330,6 +358,13 @@ export const ui = {
   },
 
   nl: {
+    'nav.home': 'Home',
+    'footer.quickLinks': 'Snelle links',
+    'footer.whatsappUs': 'WhatsApp ons',
+    'footer.getInTouch': 'Contact',
+    'footer.findUs': 'Waar we zitten',
+    'footer.loadMap': 'Tik om de kaart te laden',
+    'footer.openInMaps': 'Openen in Google Maps',
     'nav.hikes': 'Wandelingen',
     'nav.private': 'Privéwandelingen',
     'nav.custom': 'Wandelingen op maat',
@@ -407,6 +442,13 @@ export const ui = {
   },
 
   fr: {
+    'nav.home': 'Accueil',
+    'footer.quickLinks': 'Liens rapides',
+    'footer.whatsappUs': 'WhatsApp',
+    'footer.getInTouch': 'Nous contacter',
+    'footer.findUs': 'Nous trouver',
+    'footer.loadMap': 'Touchez pour charger la carte',
+    'footer.openInMaps': 'Ouvrir dans Google Maps',
     'nav.hikes': 'Randonnées',
     'nav.private': 'Randonnées privées',
     'nav.custom': 'Randonnées sur mesure',

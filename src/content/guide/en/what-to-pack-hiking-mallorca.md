@@ -48,6 +48,7 @@ faqs:
       Mallorca tempts people into over-packing for a Mediterranean island and
       under-packing for a mountain range; the aim is a light bag with the right
       four or five things in it.
+draft: true
 ---
 
 Mallorca reads as a beach island, and people pack accordingly. The Serra de Tramuntana is a limestone mountain range with 1,400 m summits, very little shade, sharp rock, and almost no water. The gap between those two mental models is where most problems start.

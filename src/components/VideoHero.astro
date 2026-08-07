@@ -1,0 +1,233 @@
+---
+import Logo from './Logo.astro';
+
+/**
+ * Full-screen video hero with the logo lockup centred over it.
+ *
+ * Getting a background video right on mobile is mostly a list of specific
+ * gotchas, all handled below:
+ *
+ *  - `muted` + `playsinline` + `autoplay`: iOS Safari refuses to autoplay
+ *    without all three, and without `playsinline` it hijacks the whole screen
+ *    into the native fullscreen player.
+ *  - `poster`: shown instantly while the video loads, so the hero is never
+ *    blank. It is also what a data-saver browser leaves in place.
+ *  - `preload="metadata"`: the poster carries the first impression, so there
+ *    is no reason to spend a phone's data downloading video before it is
+ *    needed.
+ *  - `prefers-reduced-motion`: the video is not loaded at all for anyone who
+ *    has asked the OS to stop moving things. Autoplaying video is exactly
+ *    what that setting exists for.
+ *  - No video source at all: the component falls back to the poster image,
+ *    so the site works before the MP4 exists.
+ */
+interface Props {
+  /** Path under /videos/, without extension. Both .mp4 and .webm are tried. */
+  video?: string;
+  /** Poster image, shown before and instead of the video. */
+  poster?: string;
+  /** Screen-reader description of what the video shows. */
+  label?: string;
+  /** Optional scroll cue under the logo. */
+  scrollHint?: string;
+}
+
+const {
+  video,
+  poster = '/video/hero-poster.jpg',
+  label = 'Walking in the Serra de Tramuntana, Mallorca',
+  scrollHint,
+} = Astro.props;
+---
+
+<section class="vhero" data-vhero>
+  <div class="vhero__media">
+    {
+      video ? (
+        <video
+          class="vhero__video"
+          data-hero-video
+          poster={poster}
+          preload="metadata"
+          autoplay
+          muted
+          loop
+          playsinline
+          disablepictureinpicture
+          aria-label={label}
+        >
+          {/* WebM first: smaller at the same quality where it is supported. */}
+          <source src={`${video}.webm`} type="video/webm" />
+          <source src={`${video}.mp4`} type="video/mp4" />
+        </video>
+      ) : (
+        <img class="vhero__poster" src={poster} alt="" width="1920" height="1080" />
+      )
+    }
+  </div>
+
+  <div class="vhero__inner">
+    <h1 class="vhero__logo">
+      <Logo layout="stacked" tone="light" />
+      <span class="visually-hidden">Blue Peaks Mallorca</span>
+    </h1>
+
+    <slot />
+  </div>
+
+  {
+    scrollHint && (
+      <div class="vhero__scroll" aria-hidden="true">
+        <span>{scrollHint}</span>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 5v14M6 13l6 6 6-6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  .vhero {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* svh, not vh: iOS Safari's collapsing toolbar otherwise crops the logo. */
+    min-height: 100svh;
+    padding-block: calc(var(--header-h) + var(--space-xl)) var(--space-2xl);
+    overflow: hidden;
+    isolation: isolate;
+    background: var(--charcoal);
+    text-align: center;
+  }
+
+  .vhero__media {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+
+  .vhero__video,
+  .vhero__poster {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A scrim so white type clears AA over any frame of the video. */
+  .vhero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse at center, rgb(0 0 0 / 0.22) 0%, rgb(0 0 0 / 0.42) 100%),
+      linear-gradient(to bottom, rgb(0 0 0 / 0.28) 0%, rgb(0 0 0 / 0.1) 40%, rgb(0 0 0 / 0.42) 100%);
+  }
+
+  .vhero__inner {
+    position: relative;
+    width: 100%;
+    max-width: var(--width-content);
+    padding-inline: var(--gutter);
+    color: #fff;
+  }
+
+  .vhero__logo {
+    display: flex;
+    justify-content: center;
+    margin: 0;
+    /* The lockup is the h1; its own sizing governs, not the heading scale. */
+    font-size: inherit;
+    font-weight: 400;
+    letter-spacing: normal;
+  }
+
+  .vhero__scroll {
+    position: absolute;
+    left: 50%;
+    bottom: var(--space-m);
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.35rem;
+    color: rgb(255 255 255 / 0.8);
+    font-size: var(--step--1);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .vhero__scroll svg {
+      animation: nudge 2.4s var(--ease-out) infinite;
+    }
+  }
+
+  @keyframes nudge {
+    0%,
+    100% {
+      transform: translateY(0);
+      opacity: 0.7;
+    }
+    50% {
+      transform: translateY(4px);
+      opacity: 1;
+    }
+  }
+
+  /*
+    Anyone who has asked their OS to reduce motion gets the poster frame.
+    The <source> elements are stripped by the script below so the video is
+    never even fetched.
+  */
+  @media (prefers-reduced-motion: reduce) {
+    .vhero__video {
+      /* Keeps the poster visible if the browser has already started playback. */
+      visibility: visible;
+    }
+  }
+</style>
+
+<script>
+  const video = document.querySelector<HTMLVideoElement>('[data-hero-video]');
+
+  if (video) {
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+    const stop = () => {
+      video.pause();
+      video.removeAttribute('autoplay');
+      // Dropping the sources leaves the poster frame in place and stops the
+      // browser fetching megabytes nobody asked for.
+      video.querySelectorAll('source').forEach((s) => s.remove());
+      video.load();
+    };
+
+    if (reduced.matches) {
+      stop();
+    } else {
+      /*
+        Autoplay can still be refused — low power mode on iOS, a data saver,
+        or a per-site setting. The promise rejects silently in that case, and
+        the poster is already showing, so there is nothing to do but not throw.
+      */
+      video.play().catch(() => {});
+
+      // Save battery while the hero is off screen.
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) video.play().catch(() => {});
+          else video.pause();
+        },
+        { threshold: 0 }
+      );
+      observer.observe(video);
+    }
+
+    reduced.addEventListener('change', (event) => {
+      if (event.matches) stop();
+    });
+  }
+</script>

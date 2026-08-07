@@ -70,6 +70,7 @@ faqs:
       refrigeration arrived, snow was packed in winter, insulated with ash and
       branches, and carried down to Palma in summer to cool food and drink.
       Several survive on the mountain and the route passes them.
+draft: true
 ---
 
 Massanella is the real thing: a mountain day, on a mountain that behaves like one. Weather comes in fast, the ground near the top is genuinely awkward, and the summit feels earned rather than delivered.

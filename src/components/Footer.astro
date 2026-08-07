@@ -1,7 +1,6 @@
 ---
 import { site, type Locale } from '../data/site';
 import { localePath, useTranslations } from '../i18n/utils';
-import Logo from './Logo.astro';
 
 interface Props {
   locale: Locale;
@@ -10,83 +9,93 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 
-const explore = [
+const quickLinks = [
+  { key: 'nav.home', path: '' },
   { key: 'nav.hikes', path: 'hikes' },
   { key: 'nav.private', path: 'private-hikes' },
   { key: 'nav.custom', path: 'custom-hikes' },
-  { key: 'nav.guide', path: 'guide' },
-] as const;
-
-const company = [
-  { key: 'nav.about', path: 'about' },
   { key: 'nav.blog', path: 'blog' },
-  { key: 'nav.contact', path: 'contact' },
 ] as const;
 
-const whatsappUrl = `https://wa.me/${site.contact.whatsapp}`;
+const whatsapp = `https://wa.me/${site.contact.whatsapp}`;
 const year = new Date().getFullYear();
+
+// Coordinates come from site.ts so the map, the schema geo and the address
+// can never drift apart.
+const { latitude, longitude } = site.geo;
+const mapsLink = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+const mapEmbed = `https://www.google.com/maps?q=${latitude},${longitude}&hl=en&z=15&output=embed`;
 ---
 
 <footer class="site-footer">
   <div class="wrap wrap--wide">
     <div class="site-footer__grid">
-      <div class="site-footer__brand">
-        <a href={localePath(locale)} aria-label={site.name}>
-          <Logo tone="light" />
-        </a>
-        <p class="site-footer__tagline">{t('footer.tagline')}</p>
-
-        <ul class="site-footer__social">
-          <li>
-            <a href={site.social.instagram} rel="me noopener" target="_blank">Instagram</a>
-          </li>
-          <li>
-            <a href={site.social.tripadvisor} rel="noopener" target="_blank">Tripadvisor</a>
-          </li>
+      <nav class="site-footer__col" aria-label={t('footer.quickLinks')}>
+        <h2 class="site-footer__heading">{t('footer.quickLinks')}</h2>
+        <ul>
+          {
+            quickLinks.map((link) => (
+              <li>
+                <a href={localePath(locale, link.path)}>{t(link.key)}</a>
+              </li>
+            ))
+          }
         </ul>
+      </nav>
+
+      <div class="site-footer__col site-footer__col--qr">
+        <h2 class="site-footer__heading">{t('footer.whatsappUs')}</h2>
+        <a class="site-footer__qr" href={whatsapp} rel="noopener" target="_blank">
+          <img
+            src="/whatsapp-qr.svg"
+            alt={`QR code linking to a WhatsApp chat with ${site.name}`}
+            width="160"
+            height="160"
+            loading="lazy"
+          />
+          <span>{site.contact.phoneDisplay}</span>
+        </a>
       </div>
 
-      <nav class="site-footer__col" aria-label={t('footer.explore')}>
-        <h2 class="site-footer__heading">{t('footer.explore')}</h2>
-        <ul>
-          {
-            explore.map((link) => (
-              <li>
-                <a href={localePath(locale, link.path)}>{t(link.key)}</a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-
-      <nav class="site-footer__col" aria-label={t('footer.company')}>
-        <h2 class="site-footer__heading">{t('footer.company')}</h2>
-        <ul>
-          {
-            company.map((link) => (
-              <li>
-                <a href={localePath(locale, link.path)}>{t(link.key)}</a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-
       {/*
-        Name, address and phone stated in plain readable text. This is the
-        version a crawler cross-checks against Tripadvisor and Google, so it
-        must match those listings character for character.
+        Name, address and phone in plain readable text. This is the version a
+        crawler cross-checks against Tripadvisor and Google, so it must match
+        those listings exactly.
       */}
       <div class="site-footer__col">
-        <h2 class="site-footer__heading">{t('footer.contactUs')}</h2>
+        <h2 class="site-footer__heading">{t('footer.getInTouch')}</h2>
         <address class="site-footer__address">
           <a href={`mailto:${site.contact.email}`}>{site.contact.email}</a>
           <a href={`tel:${site.contact.phone}`}>{site.contact.phoneDisplay}</a>
-          <a href={whatsappUrl} rel="noopener" target="_blank">WhatsApp</a>
-          <span class="site-footer__place">
-            {site.address.locality}, {site.address.region}, {site.address.countryName}
+          <span>
+            {site.address.locality}, {site.address.region}<br />{site.address.countryName}
           </span>
         </address>
+      </div>
+
+      {/*
+        Click-to-load map.
+
+        A Google Maps iframe sets cookies and phones home on every page view,
+        which would be the only third-party request on the whole site and the
+        one thing on it needing a consent banner. Nothing loads until someone
+        actually asks for the map.
+      */}
+      <div class="site-footer__col site-footer__col--map">
+        <h2 class="site-footer__heading">{t('footer.findUs')}</h2>
+        <div class="mapbox" data-map data-embed={mapEmbed}>
+          <button type="button" class="mapbox__load" data-map-load>
+            <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+              <path d="M12 21s7-6.3 7-11a7 7 0 1 0-14 0c0 4.7 7 11 7 11Z" stroke-linejoin="round"/>
+              <circle cx="12" cy="10" r="2.6"/>
+            </svg>
+            <span class="mapbox__label">{site.address.locality}, Mallorca</span>
+            <span class="mapbox__hint">{t('footer.loadMap')}</span>
+          </button>
+        </div>
+        <p class="site-footer__maplink">
+          <a href={mapsLink} rel="noopener" target="_blank">{t('footer.openInMaps')}</a>
+        </p>
       </div>
     </div>
 
@@ -99,33 +108,25 @@ const year = new Date().getFullYear();
 
 <style>
   .site-footer {
-    background: var(--surface-inverse);
-    color: var(--text-inverse-muted);
+    background: var(--white);
+    color: var(--charcoal);
     padding-block: var(--space-2xl) var(--space-l);
     font-size: var(--step--1);
+    border-top: 1px solid var(--border);
   }
 
   .site-footer__grid {
     display: grid;
     gap: var(--space-xl) var(--space-l);
     grid-template-columns: 1fr;
-  }
-
-  .site-footer__tagline {
-    margin-top: var(--space-s);
-    max-width: 30ch;
-    color: var(--text-inverse-muted);
-    line-height: var(--leading-normal);
+    text-align: center;
   }
 
   .site-footer__heading {
-    font-family: var(--font-body);
-    font-size: var(--step--1);
-    font-weight: 600;
-    letter-spacing: var(--tracking-caps);
-    text-transform: uppercase;
-    color: var(--stone-400);
-    margin-bottom: var(--space-xs);
+    font-size: var(--step-1);
+    font-weight: 500;
+    color: var(--olive);
+    margin-bottom: var(--space-s);
   }
 
   .site-footer ul {
@@ -134,68 +135,152 @@ const year = new Date().getFullYear();
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
-  }
-
-  .site-footer__social {
-    flex-direction: row !important;
-    gap: var(--space-s) !important;
-    margin-top: var(--space-m) !important;
+    gap: 0.65rem;
   }
 
   .site-footer a {
-    color: var(--sand-200);
+    color: var(--teal);
     text-decoration: none;
   }
 
   .site-footer a:hover {
-    color: #fff;
+    color: var(--teal-dark);
     text-decoration: underline;
     text-underline-offset: 0.2em;
+  }
+
+  .site-footer__qr {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2xs);
+  }
+
+  .site-footer__qr img {
+    width: 9rem;
+    height: 9rem;
   }
 
   .site-footer__address {
     display: flex;
     flex-direction: column;
-    gap: 0.6rem;
+    gap: 0.65rem;
     font-style: normal;
-    align-items: flex-start;
+    align-items: center;
   }
 
-  .site-footer__place {
-    color: var(--text-inverse-muted);
+  .site-footer__address span {
+    color: var(--text-muted);
     line-height: var(--leading-snug);
+  }
+
+  /* ---- Click-to-load map ---- */
+
+  .mapbox {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius-m);
+    overflow: hidden;
+    background: var(--greige-light);
+    border: 1px solid var(--border);
+  }
+
+  .mapbox__load {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    height: 100%;
+    padding: var(--space-s);
+    color: var(--olive);
+    text-align: center;
+    transition: background-color var(--duration) var(--ease-out);
+  }
+
+  .mapbox__load:hover {
+    background: var(--greige);
+  }
+
+  .mapbox__label {
+    font-weight: 600;
+    font-size: var(--step-0);
+    color: var(--charcoal);
+  }
+
+  .mapbox__hint {
+    font-size: var(--step--1);
+    color: var(--text-faint);
+  }
+
+  .mapbox :global(iframe) {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  .site-footer__maplink {
+    margin-top: var(--space-2xs);
   }
 
   .site-footer__bottom {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-between;
+    justify-content: center;
     gap: var(--space-2xs) var(--space-m);
     margin-top: var(--space-2xl);
     padding-top: var(--space-m);
-    border-top: 1px solid rgb(255 255 255 / 0.12);
-    color: var(--stone-500);
+    border-top: 1px solid var(--border);
+    color: var(--text-faint);
+    text-align: center;
   }
 
   @media (min-width: 40rem) {
     .site-footer__grid {
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
+      text-align: left;
     }
 
-    .site-footer__brand {
-      grid-column: 1 / -1;
+    .site-footer__qr,
+    .site-footer__address {
+      align-items: flex-start;
+    }
+
+    .site-footer__bottom {
+      justify-content: space-between;
+      text-align: left;
     }
   }
 
   @media (min-width: 64rem) {
     .site-footer__grid {
-      /* Brand block gets the extra room; the three link columns stay even. */
-      grid-template-columns: 1.6fr 1fr 1fr 1.2fr;
-    }
-
-    .site-footer__brand {
-      grid-column: auto;
+      grid-template-columns: 1fr 1fr 1fr 1.3fr;
     }
   }
 </style>
+
+<script>
+  // Swaps the placeholder for the real embed on click. One iframe, on demand,
+  // and only for someone who asked for it.
+  document.querySelectorAll<HTMLElement>('[data-map]').forEach((box) => {
+    const button = box.querySelector<HTMLButtonElement>('[data-map-load]');
+    const src = box.dataset.embed;
+    if (!button || !src) return;
+
+    button.addEventListener(
+      'click',
+      () => {
+        const frame = document.createElement('iframe');
+        frame.src = src;
+        frame.title = 'Map showing where Blue Peaks Mallorca is based';
+        frame.loading = 'lazy';
+        frame.referrerPolicy = 'no-referrer-when-downgrade';
+        frame.allowFullscreen = true;
+        box.replaceChildren(frame);
+      },
+      { once: true }
+    );
+  });
+</script>

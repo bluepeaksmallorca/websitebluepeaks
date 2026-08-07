@@ -2,7 +2,7 @@
 @import './tokens.css';
 
 /* =====================================================================
-   Reset — modern, minimal, opinionated where it saves work later.
+   Reset
    ===================================================================== */
 
 *,
@@ -17,7 +17,6 @@
 
 html {
   -webkit-text-size-adjust: 100%;
-  /* Anchor links and in-page nav must clear the sticky header. */
   scroll-padding-top: calc(var(--header-h) + var(--space-s));
 }
 
@@ -31,13 +30,13 @@ body {
   min-height: 100svh;
   background-color: var(--bg);
   color: var(--text);
-  font-family: var(--font-body);
+  font-family: var(--font-sans);
   font-size: var(--step-0);
+  font-weight: 400;
   line-height: var(--leading-normal);
-  font-synthesis-weight: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
-  /* Long place names ("Barranc de Biniaraix") must not overflow a 320px phone. */
+  /* "Barranc de Biniaraix" must not overflow a 320px phone. */
   overflow-wrap: break-word;
 }
 
@@ -88,7 +87,7 @@ ol[class] {
 }
 
 ::selection {
-  background: var(--blue-700);
+  background: var(--olive);
   color: #fff;
 }
 
@@ -105,18 +104,21 @@ ol[class] {
 
 /* =====================================================================
    Typography
+
+   Poppins throughout. Cormorant Garamond is reserved for the blog, exactly
+   as on the current site — it is what makes an article feel like an article
+   rather than another marketing block.
    ===================================================================== */
 
 h1,
 h2,
 h3,
 h4 {
-  font-family: var(--font-display);
-  font-weight: 500;
+  font-family: var(--font-sans);
+  font-weight: 600;
   line-height: var(--leading-tight);
   letter-spacing: var(--tracking-tight);
-  /* Fraunces reads best with a little optical-size lift at display sizes. */
-  font-variation-settings: 'SOFT' 20, 'WONK' 0;
+  color: var(--heading);
   text-wrap: balance;
 }
 
@@ -139,7 +141,8 @@ p {
   text-wrap: pretty;
 }
 
-strong {
+strong,
+b {
   font-weight: 600;
 }
 
@@ -153,20 +156,10 @@ hr {
   margin-block: var(--space-xl);
 }
 
-blockquote {
-  margin: 0;
-  padding-left: var(--space-m);
-  border-left: 3px solid var(--sand-300);
-  font-family: var(--font-display);
-  font-size: var(--step-1);
-  line-height: var(--leading-snug);
-  color: var(--ink-700);
-}
-
 code {
   font-family: var(--font-mono);
   font-size: 0.9em;
-  background: var(--bg-sunken);
+  background: rgb(0 0 0 / 0.05);
   padding: 0.15em 0.4em;
   border-radius: var(--radius-xs);
 }
@@ -195,24 +188,21 @@ code {
 }
 
 .section--tight {
-  padding-block: calc(var(--section-gap) * 0.6);
+  padding-block: calc(var(--section-gap) * 0.55);
 }
 
-.section--sunken {
-  background: var(--bg-subtle);
+/* Blog and FAQ sit on white, everything else on the greige ground. */
+.section--white {
+  background: var(--bg-alt);
 }
 
-.section--ink {
-  background: var(--surface-inverse);
-  color: var(--text-inverse);
+.section--black {
+  background: var(--black);
+  color: var(--white);
 }
 
-.section--ink :is(h1, h2, h3, h4) {
-  color: var(--sand-50);
-}
-
-.section--ink a:not(.btn) {
-  color: var(--sand-200);
+.section--black :is(h1, h2, h3, h4) {
+  color: var(--white);
 }
 
 .stack > * + * {
@@ -237,8 +227,8 @@ code {
   left: var(--space-2xs);
   z-index: 200;
   padding: var(--space-2xs) var(--space-s);
-  background: var(--primary);
-  color: var(--primary-text);
+  background: var(--olive);
+  color: #fff;
   border-radius: var(--radius-s);
   text-decoration: none;
   transform: translateY(-150%);
@@ -247,17 +237,64 @@ code {
 
 .skip-link:focus-visible {
   transform: translateY(0);
-  color: var(--primary-text);
+  color: #fff;
 }
 
-/*
-  Auto-fitting grid. Cards reflow from 1 column on a phone to as many as fit,
-  with no breakpoints — `--min` sets the narrowest a card may get.
-*/
 .grid {
   display: grid;
   gap: var(--space-m);
   grid-template-columns: repeat(auto-fit, minmax(min(var(--min, 18rem), 100%), 1fr));
+}
+
+/* =====================================================================
+   The section heading pattern
+
+   Centred title with a short olive rule beneath it — used for SERVICES,
+   BLOG, FAQs and OUR PARTNERS & FRIENDS on the live site. It is the single
+   most recognisable structural element of the brand.
+   ===================================================================== */
+
+.section-title {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+}
+
+.section-title__text {
+  font-size: var(--step-4);
+  font-weight: 600;
+  letter-spacing: var(--tracking-normal);
+  color: var(--heading);
+  text-transform: uppercase;
+}
+
+.section-title__text--olive {
+  color: var(--heading-olive);
+}
+
+.section-title__text--sentence {
+  text-transform: none;
+}
+
+.section-title::after {
+  content: '';
+  display: block;
+  width: 6.5rem;
+  height: 2px;
+  margin: var(--space-m) auto 0;
+  background: var(--rule);
+}
+
+.section-title--no-rule::after {
+  display: none;
+}
+
+.section-title__sub {
+  margin-top: var(--space-m);
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+  color: var(--text-muted);
+  max-width: 42ch;
+  margin-inline: auto;
 }
 
 /* =====================================================================
@@ -269,10 +306,10 @@ code {
   align-items: center;
   justify-content: center;
   gap: var(--space-2xs);
-  /* 48px minimum: comfortable thumb target on a phone. */
+  /* 48px minimum: comfortable thumb target. */
   min-height: 3rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: var(--radius-pill);
+  padding: 0.8rem 1.6rem;
+  border-radius: var(--radius-s);
   font-size: var(--step-0);
   font-weight: 500;
   line-height: 1.2;
@@ -290,48 +327,52 @@ code {
   transform: translateY(1px);
 }
 
-.btn--primary {
-  background: var(--primary);
-  color: var(--primary-text);
-}
-
-.btn--primary:hover {
-  background: var(--primary-hover);
-  color: var(--primary-text);
-}
-
-.btn--accent {
-  background: var(--accent);
+.btn--teal {
+  background: var(--teal);
   color: #fff;
 }
 
-.btn--accent:hover {
-  background: var(--accent-hover);
+.btn--teal:hover {
+  background: var(--teal-dark);
   color: #fff;
 }
 
-.btn--ghost {
-  border-color: var(--border-strong);
-  color: var(--text);
+.btn--black {
+  background: var(--black);
+  color: #fff;
+}
+
+.btn--black:hover {
+  background: #1c1c1c;
+  color: #fff;
+}
+
+.btn--outline {
+  border-color: var(--charcoal);
+  color: var(--charcoal);
   background: transparent;
 }
 
-.btn--ghost:hover {
-  background: var(--surface);
-  border-color: var(--stone-400);
-  color: var(--text);
+.btn--outline:hover {
+  background: var(--charcoal);
+  color: var(--white);
 }
 
-.btn--on-ink {
-  border-color: rgb(255 255 255 / 0.35);
+/* Outlined on a photograph — the "WHATSAPP BLUE PEAKS" banner button. */
+.btn--outline-light {
+  border-color: rgb(255 255 255 / 0.9);
   color: #fff;
-  background: rgb(255 255 255 / 0.06);
+  background: rgb(0 0 0 / 0.1);
+  font-weight: 600;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  padding: 1.1rem 2rem;
+  backdrop-filter: blur(2px);
 }
 
-.btn--on-ink:hover {
-  background: rgb(255 255 255 / 0.16);
-  border-color: rgb(255 255 255 / 0.6);
-  color: #fff;
+.btn--outline-light:hover {
+  background: rgb(255 255 255 / 0.95);
+  color: var(--charcoal);
 }
 
 .btn--whatsapp {
@@ -340,7 +381,7 @@ code {
 }
 
 .btn--whatsapp:hover {
-  background: var(--whatsapp-hover);
+  background: var(--whatsapp-dark);
   color: #fff;
 }
 
@@ -354,7 +395,6 @@ code {
   gap: var(--space-xs);
 }
 
-/* On the narrowest phones, stacked full-width buttons beat cramped side-by-side. */
 @media (max-width: 24rem) {
   .btn-row > .btn {
     width: 100%;
@@ -366,171 +406,60 @@ code {
    ===================================================================== */
 
 .eyebrow {
-  font-family: var(--font-body);
   font-size: var(--step--1);
   font-weight: 600;
-  letter-spacing: var(--tracking-caps);
+  letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
   color: var(--text-faint);
-}
-
-.section--ink .eyebrow {
-  color: var(--stone-400);
 }
 
 .lede {
   font-size: var(--step-1);
   line-height: var(--leading-snug);
   color: var(--text-muted);
-  max-width: 40ch;
+}
+
+/* The italic voice used for the intro and the welcome paragraph. */
+.voice {
+  font-style: italic;
+  font-size: var(--step-1);
+  line-height: var(--leading-snug);
+  color: var(--charcoal);
 }
 
 .muted {
   color: var(--text-muted);
 }
 
-.section-head {
-  max-width: 44rem;
-  margin-bottom: var(--space-l);
+.text-center {
+  text-align: center;
 }
 
-.section-head > * + * {
-  margin-top: var(--space-xs);
-}
-
-/* =====================================================================
-   Cards
-   ===================================================================== */
-
-.card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-l);
-  overflow: hidden;
-  transition:
-    transform var(--duration) var(--ease-out),
-    box-shadow var(--duration) var(--ease-out),
-    border-color var(--duration) var(--ease-out);
-}
-
-@media (hover: hover) {
-  .card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-m);
-    border-color: var(--border-strong);
-  }
-}
-
-.card__media {
-  aspect-ratio: 4 / 3;
-  background: var(--bg-sunken);
-  overflow: hidden;
-}
-
-.card__media img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 500ms var(--ease-out);
-}
-
-@media (hover: hover) {
-  .card:hover .card__media img {
-    transform: scale(1.04);
-  }
-}
-
-.card__body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2xs);
-  padding: var(--space-m);
-  flex: 1;
-}
-
-.card__title {
-  font-size: var(--step-2);
-}
-
-/*
-  Stretched link: the whole card is clickable, but only the title is a real
-  link, so screen readers and the status bar announce a sensible target.
-*/
-.card__title a::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-}
-
-.card__title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.card__title a:hover {
-  color: var(--link);
-}
-
-.card__meta {
-  margin-top: auto;
-  padding-top: var(--space-xs);
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2xs) var(--space-s);
-  font-size: var(--step--1);
-  color: var(--text-muted);
+.center-block {
+  margin-inline: auto;
 }
 
 /* =====================================================================
-   Badges & pills
-   ===================================================================== */
-
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35em;
-  padding: 0.25em 0.7em;
-  border-radius: var(--radius-pill);
-  font-size: var(--step--1);
-  font-weight: 500;
-  line-height: 1.5;
-  background: var(--bg-sunken);
-  color: var(--stone-600);
-  white-space: nowrap;
-}
-
-.badge--easy {
-  background: #e4efe8;
-  color: #2f5c46;
-}
-.badge--moderate {
-  background: #e2edf3;
-  color: #1f5069;
-}
-.badge--challenging {
-  background: #f7e9dd;
-  color: #8f4d21;
-}
-.badge--demanding {
-  background: #f6e0da;
-  color: #8d3826;
-}
-
-/* =====================================================================
-   Prose — long-form article body
+   Prose — article body, set in the serif
    ===================================================================== */
 
 .prose {
   max-width: var(--measure);
-  font-size: var(--step-0);
+  font-family: var(--font-serif);
+  font-size: clamp(1.13rem, 1.05rem + 0.35vw, 1.35rem);
   line-height: var(--leading-relaxed);
+  color: var(--charcoal);
 }
 
 .prose > * + * {
   margin-top: var(--space-s);
+}
+
+.prose > :is(h2, h3, h4) {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  color: var(--olive);
+  letter-spacing: 0;
 }
 
 .prose > h2 {
@@ -545,8 +474,7 @@ code {
   margin-bottom: var(--space-3xs);
 }
 
-.prose > h2:first-child,
-.prose > h3:first-child {
+.prose > :is(h2, h3):first-child {
   margin-top: 0;
 }
 
@@ -559,7 +487,7 @@ code {
 }
 
 .prose li::marker {
-  color: var(--stone-400);
+  color: var(--olive-light);
 }
 
 .prose img {
@@ -567,32 +495,33 @@ code {
   margin-block: var(--space-m);
 }
 
-.prose figure {
-  margin-block: var(--space-l);
-}
-
 .prose figcaption {
   margin-top: var(--space-2xs);
+  font-family: var(--font-sans);
   font-size: var(--step--1);
-  color: var(--text-muted);
+  color: var(--text-faint);
+}
+
+.prose blockquote {
+  padding-left: var(--space-m);
+  border-left: 3px solid var(--olive);
+  color: var(--olive);
 }
 
 .prose a {
   text-decoration: underline;
 }
 
-/* Headings in long articles get a quiet anchor on hover. */
 .prose :is(h2, h3) {
   scroll-margin-top: calc(var(--header-h) + var(--space-m));
 }
 
 /* =====================================================================
-   Tables — used heavily for route facts, which is what LLMs quote.
+   Tables
    ===================================================================== */
 
 .table-scroll {
   overflow-x: auto;
-  /* Keep the table readable on a 320px screen without breaking the page. */
   margin-inline: calc(var(--gutter) * -1);
   padding-inline: var(--gutter);
 }
@@ -613,7 +542,7 @@ td {
 
 th {
   font-weight: 600;
-  color: var(--ink-700);
+  color: var(--charcoal);
   white-space: nowrap;
 }
 
@@ -629,12 +558,4 @@ th {
 }
 .flow-xs {
   --flow: var(--space-xs);
-}
-
-.text-center {
-  text-align: center;
-}
-
-.center-block {
-  margin-inline: auto;
 }
