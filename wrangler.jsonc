@@ -1,0 +1,30 @@
+{
+  // Cloudflare Workers configuration — deploys the built site as static assets.
+  //
+  // Cloudflare now routes new static sites through Workers rather than Pages,
+  // and the dashboard's "Create a Worker" flow runs `npx wrangler deploy`,
+  // which reads this file. Without it that command has nothing to deploy.
+  //
+  // There is deliberately no "main" entry: with only an `assets` block this
+  // deploys as a pure static site with no Worker script in front of it, which
+  // is what this build is — 49 prebuilt HTML files and nothing dynamic.
+  //
+  // Pages still works too, if you would rather use it: the equivalent settings
+  // are build command `npm run build` and output directory `dist`.
+
+  "name": "bluepeaksmallorca",
+  "compatibility_date": "2025-06-01",
+
+  "assets": {
+    // Where `npm run build` puts the finished site.
+    "directory": "./dist",
+
+    // Serves /404.html for any unmatched path, so a mistyped URL gets the
+    // designed 404 page instead of Cloudflare's default one.
+    "not_found_handling": "404-page",
+
+    // The site is built with trailing slashes (/blog/), and "auto-trailing-slash"
+    // resolves /blog/ and /blog alike to /blog/index.html.
+    "html_handling": "auto-trailing-slash"
+  }
+}

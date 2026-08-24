@@ -43,21 +43,40 @@ Node 20 or newer.
 
 ---
 
-## Deploying to Cloudflare Pages
+## Deploying to Cloudflare
 
-One-time setup, then every push to `main` deploys automatically.
+Cloudflare now routes new static sites through **Workers** rather than Pages.
+Both work; the repo is set up for Workers because that is what the dashboard
+offers by default.
 
-1. Push this repository to GitHub.
-2. Cloudflare dashboard → **Workers & Pages** → **Create** → **Pages** →
-   **Connect to Git**, and pick this repo.
-3. Build settings:
-   - **Framework preset:** Astro
+`wrangler.jsonc` in the repo root is what makes this work — it points Cloudflare
+at `dist/`, serves `404.html` for unmatched paths, and resolves `/blog/` to
+`/blog/index.html`. `.nvmrc` pins Node to 22 so you never have to set a build
+environment variable by hand.
+
+### Workers (the default flow)
+
+1. [dash.cloudflare.com](https://dash.cloudflare.com) → **Compute (Workers & Pages)**
+   → **Create** → **Import a repository**.
+2. Pick **`bluepeaksmallorca/websitebluepeaks`** — check the name, it is easy to
+   land on the wrong repo.
+3. Settings:
    - **Build command:** `npm run build`
-   - **Build output directory:** `dist`
-   - **Node version:** set an environment variable `NODE_VERSION` = `22`
-4. Deploy. You get a `*.pages.dev` URL immediately.
-5. **Custom domain:** Pages project → **Custom domains** → add
-   `bluepeaksmallorca.com` and `www.bluepeaksmallorca.com`.
+   - **Deploy command:** `npx wrangler deploy`
+4. **Deploy.** You get a `*.workers.dev` URL in a minute or two.
+
+### Pages (still supported)
+
+1. **Compute (Workers & Pages)** → **Create** → **Pages** tab → **Connect to Git**.
+2. Same repository.
+3. Settings: framework preset **Astro**, build command `npm run build`, output
+   directory `dist`, production branch `main`.
+
+Either way, every push to `main` rebuilds automatically, and pushes to other
+branches get their own preview URL.
+
+Free tier covers this comfortably: unlimited bandwidth and requests, and far
+more builds a month than you will use.
 
 ### Moving the domain off SiteGround
 
